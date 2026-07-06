@@ -29,7 +29,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install server
-        run: pip install -e "packages/server"
+        run: pip install -e "packages/server[dev]"
       - name: Import check
         run: python -c "from app.main import app; print('Server imports OK')"
         working-directory: packages/server
