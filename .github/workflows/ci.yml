@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  sdk:
+    name: SDK — Lint & Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install SDK
+        run: pip install -e "packages/sdk[dev]"
+      - name: Run SDK tests
+        run: |
+          pytest packages/sdk/tests/ -v || code=$?
+          # Exit code 5 = no tests collected (scaffold stage) — treat as pass
+          if [ "${code:-0}" -eq 5 ]; then echo "No tests yet — OK"; exit 0; fi
+          exit ${code:-0}
+
+  server:
+    name: Server — Lint & Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install server
+        run: pip install -e "packages/server[dev]"
+      - name: Import check
+        run: python -c "from app.main import app; print('Server imports OK')"
+        working-directory: packages/server
+      - name: Run server tests
+        run: |
+          pytest packages/server/tests/ -v || code=$?
+          if [ "${code:-0}" -eq 5 ]; then echo "No tests yet — OK"; exit 0; fi
+          exit ${code:-0}
+
+  ui:
+    name: UI — Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: packages/ui/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+        working-directory: packages/ui
+      - name: Build
+        run: npm run build
+        working-directory: packages/ui
