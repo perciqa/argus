@@ -1,0 +1,151 @@
+/** Argus API client — typed wrappers around the server REST API */
+
+const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api";
+
+async function get<T>(path: string): Promise<T> {
+  const res = await fetch(`${BASE}${path}`, { cache: "no-store" });
+  if (!res.ok) throw new Error(`GET ${path} → ${res.status}`);
+  return res.json();
+}
+
+// ---------------------------------------------------------------------------
+// Traces
+// ---------------------------------------------------------------------------
+
+export interface TraceSummary {
+  trace_id: string;
+  agent_name: string;
+  task: string | null;
+  status: "ok" | "error" | "drift" | "timeout";
+  start_time: string;
+  end_time: string | null;
+  duration_ms: number | null;
+  total_tokens: number;
+  total_cost_usd: number;
+  local_tokens: number;
+  cloud_tokens: number;
+  model_calls_count: number;
+  tool_calls_count: number;
+  span_count: number;
+  error_message: string | null;
+  created_at: string;
+}
+
+export interface SpanRow {
+  span_id: string;
+  trace_id: string;
+  parent_span_id: string | null;
+  name: string;
+  kind: string;
+  status: string;
+  start_time: string;
+  end_time: string | null;
+  duration_ms: number | null;
+  model_name: string | null;
+  model_provider: string | null;
+  prompt_tokens: number | null;
+  completion_tokens: number | null;
+  model_cost_usd: number | null;
+  tool_name: string | null;
+  error_message: string | null;
+}
+
+export interface TraceDetail extends TraceSummary {
+  spans: SpanRow[];
+}
+
+export interface TraceListResponse {
+  traces: TraceSummary[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+export function listTraces(params?: {
+  limit?: number;
+  offset?: number;
+  agent_name?: string;
+  status?: string;
+}) {
+  const q = new URLSearchParams();
+  if (params?.limit)      q.set("limit", String(params.limit));
+  if (params?.offset)     q.set("offset", String(params.offset));
+  if (params?.agent_name) q.set("agent_name", params.agent_name);
+  if (params?.status)     q.set("status", params.status);
+  return get<TraceListResponse>(`/traces?${q}`);
+}
+
+export function getTrace(id: string) {
+  return get<TraceDetail>(`/traces/${id}`);
+}
+
+// ---------------------------------------------------------------------------
+// FinOps
+// ---------------------------------------------------------------------------
+
+export interface FinOpsPeriod {
+  total_cost_usd: number;
+  local_cost_usd: number;
+  cloud_cost_usd: number;
+  local_tokens: number;
+  cloud_tokens: number;
+  total_tokens: number;
+  trace_count: number;
+  avg_cost_per_trace: number;
+  savings_usd: number;
+}
+
+export interface FinOpsSummary {
+  today: FinOpsPeriod;
+  this_week: FinOpsPeriod;
+  all_time: FinOpsPeriod;
+}
+
+export interface TimeseriesPoint {
+  date: string;
+  total_cost_usd: number;
+  local_tokens: number;
+  cloud_tokens: number;
+  trace_count: number;
+}
+
+export interface BreakdownResponse {
+  by_agent: { agent_name: string; trace_count: number; total_cost_usd: number; local_tokens: number; cloud_tokens: number }[];
+  by_model: { model_name: string; model_provider: string; call_count: number; prompt_tokens: number; completion_tokens: number; total_cost_usd: number }[];
+}
+
+export const getFinOpsSummary = () => get<FinOpsSummary>("/finops/summary");
+export const getTimeseries    = (days = 7) => get<TimeseriesPoint[]>(`/finops/timeseries?days=${days}`);
+export const getBreakdown     = () => get<BreakdownResponse>("/finops/breakdown");
+
+// ---------------------------------------------------------------------------
+// Evals
+// ---------------------------------------------------------------------------
+
+export interface EvalSummary {
+  eval_id: string;
+  trace_id: string;
+  overall_score: number;
+  verdict: "pass" | "warn" | "fail";
+  judge_model: string;
+  explanation: string;
+  evaluated_at: string;
+  agent_name: string | null;
+}
+
+export interface EvalListResponse {
+  evals: EvalSummary[];
+  total: number;
+  avg_score: number | null;
+  pass_rate: number | null;
+}
+
+export interface ScorePoint {
+  date: string;
+  avg_score: number;
+  eval_count: number;
+  pass_count: number;
+}
+
+export const listEvals    = (limit = 50) => get<EvalListResponse>(`/evals?limit=${limit}`);
+export const getEvalScores = (days = 7) => get<ScorePoint[]>(`/evals/scores?days=${days}`);
