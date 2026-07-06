@@ -75,3 +75,4 @@ data/*.db-wal
 # Logs
 *.log
 logs/
+.venv/
