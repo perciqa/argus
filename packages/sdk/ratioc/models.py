@@ -142,6 +142,15 @@ class Span(BaseModel):
         """Record a discrete event within this span."""
         self.events.append(SpanEvent(name=name, attributes=attributes))
 
+    def set_attribute(self, key: str, value: Any) -> None:
+        """Set an arbitrary key-value attribute on this span."""
+        self.attributes[key] = value
+
+    def set_output(self, value: Any) -> None:
+        """Set the output of this span (useful in context manager usage)."""
+        self.output_data = value
+
+
 
 class Trace(BaseModel):
     """
