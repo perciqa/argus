@@ -1,8 +1,9 @@
 """
 Argus Server — Eval engine.
 
-Evaluates completed traces using Gemma as an LLM judge.
+Evaluates completed traces using an LLM judge (DeepSeek V4 Flash via Fireworks AI).
 Runs as a FastAPI background task after each trace is ingested.
+Non-fatal — any error is logged and swallowed so ingest is never blocked.
 """
 
 from __future__ import annotations
@@ -25,9 +26,17 @@ logger = logging.getLogger("argus.eval")
 # Judge configuration
 # ---------------------------------------------------------------------------
 
-JUDGE_BASE_URL = os.getenv("JUDGE_BASE_URL", "http://localhost:11434")
-JUDGE_MODEL    = os.getenv("JUDGE_MODEL", "gemma2:9b")
-EVAL_SAMPLE_RATE = float(os.getenv("EVAL_SAMPLE_RATE", "1.0"))  # 1.0 = evaluate every trace
+# Judge defaults — Fireworks AI serverless + DeepSeek V4 Flash
+# $0.14/M input · $0.28/M output · 1M context · function-calling
+# Override via environment variables.
+JUDGE_BASE_URL    = os.getenv("JUDGE_BASE_URL",    "https://api.fireworks.ai/inference/v1")
+JUDGE_MODEL       = os.getenv("JUDGE_MODEL",       "accounts/fireworks/models/deepseek-v4-flash")
+FIREWORKS_API_KEY = os.getenv("FIREWORKS_API_KEY", "")
+EVAL_SAMPLE_RATE  = float(os.getenv("EVAL_SAMPLE_RATE", "1.0"))
+
+# DeepSeek V4 Flash pricing (Fireworks serverless, per 1M tokens)
+_JUDGE_INPUT_PRICE_PER_M  = 0.14
+_JUDGE_OUTPUT_PRICE_PER_M = 0.28
 
 JUDGE_PROMPT_TEMPLATE = """You are an expert AI agent evaluator for Argus by Perciqa.
 
@@ -142,17 +151,22 @@ async def _run_judge(trace: dict) -> Optional[dict]:
         "judge_model":     JUDGE_MODEL,
         "explanation":     scores.get("explanation", ""),
         "eval_latency_ms": elapsed_ms,
-        "eval_cost_usd":   0.0,  # local Gemma is free
+        "eval_cost_usd":   _estimate_eval_cost(prompt),
     }
 
 
 async def _call_llm(prompt: str) -> Optional[str]:
-    """Call Gemma via OpenAI-compatible API (Ollama or Fireworks)."""
+    """Call Gemma via OpenAI-compatible API (Fireworks AI or Ollama fallback)."""
+    headers: dict[str, str] = {"Content-Type": "application/json"}
+    if FIREWORKS_API_KEY:
+        headers["Authorization"] = f"Bearer {FIREWORKS_API_KEY}"
+
     try:
-        # Try OpenAI-compatible endpoint first (works for Fireworks + Ollama)
-        async with httpx.AsyncClient(timeout=30.0) as client:
+        # OpenAI-compatible endpoint (Fireworks AI + Ollama)
+        async with httpx.AsyncClient(timeout=45.0) as client:
             resp = await client.post(
-                f"{JUDGE_BASE_URL}/v1/chat/completions",
+                f"{JUDGE_BASE_URL}/chat/completions",
+                headers=headers,
                 json={
                     "model": JUDGE_MODEL,
                     "messages": [{"role": "user", "content": prompt}],
@@ -163,15 +177,18 @@ async def _call_llm(prompt: str) -> Optional[str]:
             if resp.status_code == 200:
                 data = resp.json()
                 return data["choices"][0]["message"]["content"]
+            else:
+                logger.debug("Judge HTTP %s: %s", resp.status_code, resp.text[:200])
 
-        # Fallback: Ollama native API
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            resp = await client.post(
-                f"{JUDGE_BASE_URL}/api/generate",
-                json={"model": JUDGE_MODEL, "prompt": prompt, "stream": False},
-            )
-            if resp.status_code == 200:
-                return resp.json().get("response")
+        # Fallback: Ollama native API (local only)
+        if not FIREWORKS_API_KEY:
+            async with httpx.AsyncClient(timeout=45.0) as client:
+                resp = await client.post(
+                    f"{JUDGE_BASE_URL.rstrip('/v1').rstrip('/')}/api/generate",
+                    json={"model": JUDGE_MODEL, "prompt": prompt, "stream": False},
+                )
+                if resp.status_code == 200:
+                    return resp.json().get("response")
 
     except Exception as exc:
         logger.debug("Judge LLM call failed: %s", exc)
@@ -183,7 +200,7 @@ def _build_trace_summary(trace: dict) -> str:
     """Compact trace summary for the judge prompt."""
     spans = trace.get("spans", [])
     span_lines = []
-    for s in spans[:20]:  # cap at 20 spans to stay within context window
+    for s in spans[:100]:  # V4 Flash has 1M context — fit the full trace
         line = f"  [{s.get('kind','?')}] {s.get('name','?')} — {s.get('status','?')}"
         if s.get("model_name"):
             line += f" (model={s['model_name']}, tokens={s.get('completion_tokens',0)})"
@@ -221,3 +238,17 @@ def _parse_scores(raw: str) -> Optional[dict]:
         }
     except Exception:
         return None
+
+
+def _estimate_eval_cost(prompt: str) -> float:
+    """
+    Estimate the cost of a single eval call based on prompt length.
+    Uses DeepSeek V4 Flash serverless pricing: $0.14/M input, $0.28/M output.
+    Assumes 512 output tokens (the max_tokens cap in _call_llm).
+    """
+    # Rough token estimate: 1 token ≈ 4 chars
+    approx_input_tokens  = len(prompt) / 4
+    approx_output_tokens = 512
+    input_cost  = (approx_input_tokens  / 1_000_000) * _JUDGE_INPUT_PRICE_PER_M
+    output_cost = (approx_output_tokens / 1_000_000) * _JUDGE_OUTPUT_PRICE_PER_M
+    return round(input_cost + output_cost, 8)
