@@ -76,3 +76,8 @@ data/*.db-wal
 *.log
 logs/
 .venv/
+
+# SQLite — server runtime data (never commit)
+**/data/*.db
+**/data/*.db-shm
+**/data/*.db-wal
