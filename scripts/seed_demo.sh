@@ -1,10 +1,11 @@
-#!/usr/bin/env bash
+#!/bin/sh
 # Argus demo data seeder
 # Sends 12 realistic traces across 4 agent types with mixed local/cloud spans
-# Usage: bash scripts/seed_demo.sh
+# Local:  bash scripts/seed_demo.sh
+# Docker: sh /scripts/seed_demo.sh  (BASE set by compose env)
 
-BASE="http://localhost:8000"
-NOW=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+BASE="${BASE:-http://localhost:8000}"
+
 
 send_trace() {
   local json="$1"
