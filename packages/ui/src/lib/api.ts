@@ -48,11 +48,23 @@ export interface SpanRow {
   duration_ms: number | null;
   model_name: string | null;
   model_provider: string | null;
+  model_base_url: string | null;
   prompt_tokens: number | null;
   completion_tokens: number | null;
   model_cost_usd: number | null;
+  model_latency_ms: number | null;
+  model_cached: number | null;
   tool_name: string | null;
+  tool_args_json: unknown | null;
+  tool_result_json: unknown | null;
+  tool_error: string | null;
+  tool_latency_ms: number | null;
+  input_json: unknown | null;
+  output_json: unknown | null;
+  attributes_json: Record<string, unknown> | null;
+  events_json: unknown[] | null;
   error_message: string | null;
+  error_type: string | null;
 }
 
 export interface TraceDetail extends TraceSummary {
