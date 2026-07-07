@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { Loader, Text, Alert } from "@mantine/core";
 import { IconAlertCircle, IconRefresh } from "@tabler/icons-react";
@@ -22,18 +23,20 @@ export function TraceDetailClient({ traceId }: { traceId: string }) {
     verdict: string;
   } | null>(null);
 
-  const fetchTrace = useCallback(() => {
-    setLoading(true);
-    setError(null);
+  const [retryCount, setRetryCount] = useState(0);
+
+  useEffect(() => {
     getTrace(traceId)
       .then(setTrace)
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
-  }, [traceId]);
+  }, [traceId, retryCount]);
 
-  useEffect(() => {
-    fetchTrace();
-  }, [fetchTrace]);
+  const handleRetry = useCallback(() => {
+    setLoading(true);
+    setError(null);
+    setRetryCount((n) => n + 1);
+  }, []);
 
   useArgusWebSocket(
     useCallback(
@@ -105,18 +108,18 @@ export function TraceDetailClient({ traceId }: { traceId: string }) {
         <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
           <button
             className="wf-toolbar-btn"
-            onClick={fetchTrace}
+            onClick={handleRetry}
             style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
           >
             <IconRefresh size={14} /> Retry
           </button>
-          <a
+          <Link
             href="/traces"
             className="wf-toolbar-btn"
             style={{ textDecoration: "none" }}
           >
             Back to Traces
-          </a>
+          </Link>
         </div>
       </div>
     );
@@ -131,13 +134,13 @@ export function TraceDetailClient({ traceId }: { traceId: string }) {
         <Text size="sm" c="dimmed" mt={8} mb={20}>
           The trace may have been deleted or the ID is incorrect.
         </Text>
-        <a
+        <Link
           href="/traces"
           className="wf-toolbar-btn"
           style={{ textDecoration: "none" }}
         >
           Back to Traces
-        </a>
+        </Link>
       </div>
     );
   }
