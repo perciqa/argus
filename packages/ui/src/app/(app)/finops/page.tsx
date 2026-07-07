@@ -40,7 +40,7 @@ export default function FinOpsPage() {
       setSummary(s);
       setSeries(ts);
       setBreakdown(b);
-    }).finally(() => setLoading(false));
+    }).catch(() => { /* server offline */ }).finally(() => setLoading(false));
   }, [days]);
 
   if (loading) {

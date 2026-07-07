@@ -105,6 +105,7 @@ export default function OverviewPage() {
   const [series, setSeries]   = useState<TimeseriesPoint[]>([]);
   const [evals, setEvals]     = useState<EvalListResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const [offline, setOffline] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -117,6 +118,9 @@ export default function OverviewPage() {
       setFinops(f);
       setSeries(s);
       setEvals(e);
+      setOffline(false);
+    }).catch(() => {
+      setOffline(true);
     }).finally(() => setLoading(false));
   }, []);
 
@@ -134,6 +138,36 @@ export default function OverviewPage() {
       <div style={{ display: "flex", justifyContent: "center", paddingTop: 80 }}>
         <Loader color="blue" size="sm" />
       </div>
+    );
+  }
+
+  if (offline) {
+    return (
+      <>
+        <div className="page-head">
+          <div className="page-head-left"><h1>Overview</h1></div>
+        </div>
+        <div style={{
+          background: "var(--light-orange)",
+          border: "1px solid #fed7aa",
+          borderLeft: "4px solid var(--orange)",
+          borderRadius: 14,
+          padding: "18px 24px",
+          display: "flex",
+          alignItems: "flex-start",
+          gap: 14,
+        }}>
+          <div style={{ fontSize: 22 }}>⚠️</div>
+          <div>
+            <div style={{ fontWeight: 700, color: "var(--orange)", marginBottom: 4 }}>Server offline</div>
+            <div style={{ fontSize: 13, color: "var(--dark)", lineHeight: 1.6 }}>
+              Could not connect to <code style={{ background: "#fee", padding: "1px 5px", borderRadius: 4 }}>localhost:8000</code>. Start the server then refresh.
+            </div>
+            <pre style={{ marginTop: 12, background: "#1a1a2e", color: "#a5f3fc", borderRadius: 8, padding: "10px 16px", fontSize: 12, overflowX: "auto" }}>{`set -a && source .env && set +a
+.venv/bin/uvicorn app.main:app --reload --port 8000 --app-dir packages/server`}</pre>
+          </div>
+        </div>
+      </>
     );
   }
 

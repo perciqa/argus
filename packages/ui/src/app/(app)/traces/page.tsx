@@ -114,6 +114,7 @@ export default function TracesPage() {
   useEffect(() => {
     listTraces({ limit: 50 })
       .then((d) => { setTraces(d.traces); setTotal(d.total); })
+      .catch(() => { /* server offline — show empty state */ })
       .finally(() => setLoading(false));
   }, []);
 

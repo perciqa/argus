@@ -3,7 +3,12 @@
 const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api";
 
 async function get<T>(path: string): Promise<T> {
-  const res = await fetch(`${BASE}${path}`, { cache: "no-store" });
+  let res: Response;
+  try {
+    res = await fetch(`${BASE}${path}`, { cache: "no-store" });
+  } catch {
+    throw new Error(`Argus server unreachable at ${BASE} — is the server running?`);
+  }
   if (!res.ok) throw new Error(`GET ${path} → ${res.status}`);
   return res.json();
 }
