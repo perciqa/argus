@@ -29,25 +29,32 @@ Argus closes this gap:
 ## Quickstart
 
 ```bash
-# 1. Install the SDK
-pip install argus-sdk
+# 1. Add FIREWORKS_API_KEY to .env (optional — evals fall back to local Ollama)
+echo 'FIREWORKS_API_KEY=fw_...' > .env
 
-# 2. Instrument your agent
-import argus
+# 2. Start everything
+docker compose up --build
 
-@argus.trace(name="my_agent", kind="agent")
-def my_agent(query: str) -> str:
-    result = search(query)
-    return summarize(result)
-
-# 3. Start the dashboard
-docker compose up
-
-# 4. Run your agent — traces appear in real-time at http://localhost:3000
-my_agent("Explain quantum entanglement")
+# 3. Open http://localhost:3000  (demo data seeded automatically)
 ```
 
-That's it. No config files, no account creation, no infrastructure setup.
+Or instrument your own agent:
+
+```python
+from ratioc import ArgusTracer
+
+async with ArgusTracer(
+    agent_name="my-agent",
+    task="Explain quantum entanglement",
+    server_url="http://localhost:8000",
+) as tracer:
+    with tracer.model_call("gemma3:27b", prompt_tokens=800) as span:
+        result = await llm.complete(task)
+        span.set_completion_tokens(result.usage.completion_tokens)
+
+    with tracer.tool_call("web_search") as span:
+        docs = await search(task)
+```
 
 ---
 
@@ -60,7 +67,7 @@ Capture the full decision tree of every agent run — every reasoning step, tool
 Track cost *per task*, not per GPU. See exactly how much each agent run costs, with local vs. cloud breakdowns. Local AMD GPU inference is automatically counted as **$0.00** — giving you a real picture of your savings.
 
 ### 🧪 Eval-in-Production
-Continuously score agent quality using LLM-as-judge evaluation (Gemma on AMD Developer Cloud) on live traffic. Detect regressions before users do.
+Automatically score agent quality on every trace using **DeepSeek V4 Flash** via Fireworks AI serverless ($0.07/M tokens). Detect regressions before users do. Falls back to local Ollama when no API key is set.
 
 ---
 
@@ -93,10 +100,10 @@ Continuously score agent quality using LLM-as-judge evaluation (Gemma on AMD Dev
 
 | Layer | Technology |
 |---|---|
-| SDK | Python 3.10+, Pydantic v2, httpx |
+| SDK | Python 3.12+, Pydantic v2, httpx |
 | Server | FastAPI, aiosqlite, uvicorn |
-| Dashboard | Next.js 15, Recharts, Vanilla CSS |
-| Eval | Gemma via AMD Developer Cloud / Fireworks AI |
+| Dashboard | Next.js 16, Mantine v7, Mantine Charts |
+| Eval | DeepSeek V4 Flash via Fireworks AI serverless |
 | Infrastructure | Docker, Docker Compose |
 
 ---
@@ -108,17 +115,18 @@ Continuously score agent quality using LLM-as-judge evaluation (Gemma on AMD Dev
 git clone https://github.com/perciqa/argus.git
 cd argus
 
-# Copy environment variables
-cp .env.example .env
-# Edit .env with your API keys
+# Environment
+cp .env.example .env   # add FIREWORKS_API_KEY
 
-# Start everything
-docker compose up
+# Start everything (Docker)
+docker compose up --build
 
-# Or run components individually:
-pip install -e packages/sdk[dev]
-cd packages/server && uvicorn app.main:app --reload
-cd packages/ui && npm run dev
+# Or run locally:
+python -m venv .venv && source .venv/bin/activate
+pip install -e packages/server -e packages/sdk
+uvicorn app.main:app --reload --port 8000 --app-dir packages/server &
+cd packages/ui && npm install && npm run dev
+bash scripts/seed_demo.sh   # populate 12 demo traces
 ```
 
 ---
@@ -128,15 +136,14 @@ cd packages/ui && npm run dev
 ```
 argus/
 ├── packages/
-│   ├── sdk/          # pip install argus-sdk
-│   ├── server/       # FastAPI backend
-│   └── ui/           # Next.js dashboard
-├── demo/             # Demo agent (multi-model routing)
-├── data/             # SQLite database (gitignored)
-├── tests/            # Integration tests
+│   ├── sdk/          # Python SDK (ratioc) — ArgusTracer
+│   ├── server/       # FastAPI backend + eval engine
+│   └── ui/           # Next.js 16 dashboard (AdminHub design)
+├── scripts/
+│   └── seed_demo.sh  # 12 realistic traces across 4 agents
 ├── docker-compose.yml
-├── AI_DISCLOSURE.md
-└── LICENSE
+├── .env.example
+└── README.md
 ```
 
 ---
