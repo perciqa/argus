@@ -1,10 +1,14 @@
 import { Sidebar } from "@/components/Sidebar";
+import { TopNav } from "@/components/TopNav";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="app-shell">
       <Sidebar />
-      <main className="main-content">{children}</main>
+      <section id="content" className="main-content">
+        <TopNav />
+        <main className="page-main">{children}</main>
+      </section>
     </div>
   );
 }

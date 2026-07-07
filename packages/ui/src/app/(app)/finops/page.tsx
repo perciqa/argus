@@ -4,6 +4,9 @@ import { useEffect, useState } from "react";
 import { Card, Grid, Loader, Table, Text, Tabs, Badge } from "@mantine/core";
 import { AreaChart } from "@mantine/charts";
 import {
+  IconCoin, IconBolt, IconLeaf, IconChartBar,
+} from "@tabler/icons-react";
+import {
   getFinOpsSummary, getTimeseries, getBreakdown,
   type FinOpsSummary, type TimeseriesPoint, type BreakdownResponse,
 } from "@/lib/api";
@@ -20,15 +23,6 @@ function fmtTokens(n: number) {
   return String(n);
 }
 
-function SumCard({ label, value, sub }: { label: string; value: string; sub?: string }) {
-  return (
-    <Card p="md">
-      <Text className="stat-card-label">{label}</Text>
-      <div className="stat-card-value mono">{value}</div>
-      {sub && <Text className="stat-card-delta" c="dimmed">{sub}</Text>}
-    </Card>
-  );
-}
 
 export default function FinOpsPage() {
   const [summary, setSummary]     = useState<FinOpsSummary | null>(null);
@@ -57,37 +51,36 @@ export default function FinOpsPage() {
     );
   }
 
-  const today    = summary?.today;
-  const allTime  = summary?.all_time;
-  const thisWeek = summary?.this_week;
+  const today   = summary?.today;
+  const week    = summary?.this_week;
+  const allTime = summary?.all_time;
 
   return (
-    <div className="page-container">
-      <div className="page-header">
-        <h1 className="page-title">FinOps</h1>
-        <p className="page-subtitle">Cost tracking and local inference savings</p>
+    <>
+      {/* AdminHub page head */}
+      <div className="page-head">
+        <div className="page-head-left">
+          <h1>FinOps</h1>
+          <ul className="breadcrumb">
+            <li><span style={{ color: "var(--dark-grey)" }}>Argus</span></li>
+            <li className="breadcrumb-sep">›</li>
+            <li><span className="breadcrumb-active">FinOps</span></li>
+          </ul>
+        </div>
       </div>
 
-      {/* Savings alert */}
+      {/* Savings banner */}
       {(allTime?.savings_usd ?? 0) > 0 && (
-        <div className="savings-alert" role="status">
-          <span>💰</span>
-          <span>
-            You saved{" "}
-            <span className="savings-amount">{fmtCost(allTime!.savings_usd)}</span>{" "}
-            all time by running locally on AMD hardware instead of cloud APIs.
-          </span>
+        <div className="savings-banner">
+          <div className="savings-banner-icon">
+            <IconLeaf size={18} />
+          </div>
+          <div className="savings-banner-body">
+            <div className="savings-banner-amount">{fmtCost(allTime!.savings_usd)}</div>
+            <div className="savings-banner-label">saved all time by running locally on AMD hardware instead of cloud APIs</div>
+          </div>
         </div>
       )}
-
-      {/* Today summary */}
-      <Text size="xs" c="dimmed" tt="uppercase" fw={600} mb={10}>Today</Text>
-      <div className="stat-cards-row" style={{ marginBottom: 28 }}>
-        <SumCard label="Total Cost"        value={fmtCost(today?.total_cost_usd ?? 0)} />
-        <SumCard label="Local Tokens"      value={fmtTokens(today?.local_tokens ?? 0)}  sub="$0.00 (free)" />
-        <SumCard label="Cloud Tokens"      value={fmtTokens(today?.cloud_tokens ?? 0)} />
-        <SumCard label="Traces"            value={String(today?.trace_count ?? 0)} />
-      </div>
 
       {/* This week / All time */}
       <Grid mb={28}>
@@ -95,10 +88,10 @@ export default function FinOpsPage() {
           <Card p="md">
             <Text size="xs" c="dimmed" tt="uppercase" fw={600} mb={12}>This Week</Text>
             <Grid gutter="xs">
-              <Grid.Col span={6}><Text size="xs" c="dimmed">Cost</Text><Text fw={600} className="mono">{fmtCost(thisWeek?.total_cost_usd ?? 0)}</Text></Grid.Col>
-              <Grid.Col span={6}><Text size="xs" c="dimmed">Savings</Text><Text fw={600} c="green" className="mono">{fmtCost(thisWeek?.savings_usd ?? 0)}</Text></Grid.Col>
-              <Grid.Col span={6}><Text size="xs" c="dimmed">Local tokens</Text><Text fw={600} className="mono">{fmtTokens(thisWeek?.local_tokens ?? 0)}</Text></Grid.Col>
-              <Grid.Col span={6}><Text size="xs" c="dimmed">Traces</Text><Text fw={600}>{thisWeek?.trace_count ?? 0}</Text></Grid.Col>
+              <Grid.Col span={6}><Text size="xs" c="dimmed">Cost</Text><Text fw={600} className="mono">{fmtCost(week?.total_cost_usd ?? 0)}</Text></Grid.Col>
+              <Grid.Col span={6}><Text size="xs" c="dimmed">Savings</Text><Text fw={600} c="green" className="mono">{fmtCost(week?.savings_usd ?? 0)}</Text></Grid.Col>
+              <Grid.Col span={6}><Text size="xs" c="dimmed">Local tokens</Text><Text fw={600} className="mono">{fmtTokens(week?.local_tokens ?? 0)}</Text></Grid.Col>
+              <Grid.Col span={6}><Text size="xs" c="dimmed">Traces</Text><Text fw={600}>{week?.trace_count ?? 0}</Text></Grid.Col>
             </Grid>
           </Card>
         </Grid.Col>
@@ -217,6 +210,6 @@ export default function FinOpsPage() {
           </Card>
         </Grid.Col>
       </Grid>
-    </div>
+    </>
   );
 }
