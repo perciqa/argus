@@ -38,9 +38,9 @@ EVAL_SAMPLE_RATE  = float(os.getenv("EVAL_SAMPLE_RATE", "1.0"))
 _JUDGE_INPUT_PRICE_PER_M  = 0.14
 _JUDGE_OUTPUT_PRICE_PER_M = 0.28
 
-JUDGE_PROMPT_TEMPLATE = """You are an expert AI agent evaluator for Argus by Perciqa.
+JUDGE_SYSTEM_PROMPT = """You are an expert AI agent evaluator for Argus by Perciqa. You respond ONLY with valid JSON. No explanation, no reasoning, no markdown — just the JSON object."""
 
-Evaluate the following agent trace and return a JSON object with your assessment.
+JUDGE_PROMPT_TEMPLATE = """Evaluate the following agent trace and return a JSON object with your assessment.
 
 ## Agent Trace
 {trace_summary}
@@ -169,9 +169,13 @@ async def _call_llm(prompt: str) -> Optional[str]:
                 headers=headers,
                 json={
                     "model": JUDGE_MODEL,
-                    "messages": [{"role": "user", "content": prompt}],
-                    "temperature": 0.1,
+                    "messages": [
+                        {"role": "system", "content": JUDGE_SYSTEM_PROMPT},
+                        {"role": "user", "content": prompt},
+                    ],
+                    "temperature": 0.0,
                     "max_tokens": 512,
+                    "response_format": {"type": "json_object"},
                 },
             )
             if resp.status_code == 200:
@@ -221,23 +225,66 @@ Spans ({len(spans)} total):
 
 def _parse_scores(raw: str) -> Optional[dict]:
     """Extract JSON scores from the judge's raw response."""
+    # Try to find a JSON object anywhere in the response
+    text = raw.strip()
+    # Strip markdown fences if present
+    if "```" in text:
+        text = text.split("```")[1]
+        if text.startswith("json"):
+            text = text[4:]
+    # Try parsing the whole text as JSON
     try:
-        # Strip markdown fences if present
-        text = raw.strip()
-        if "```" in text:
-            text = text.split("```")[1]
-            if text.startswith("json"):
-                text = text[4:]
         data = json.loads(text.strip())
-        return {
-            "accuracy":    float(data.get("accuracy", 50)),
-            "reasoning":   float(data.get("reasoning", 50)),
-            "tool_usage":  float(data.get("tool_usage", 50)),
-            "safety":      float(data.get("safety", 100)),
-            "explanation": str(data.get("explanation", "")),
-        }
+        return _extract_scores(data)
     except Exception:
-        return None
+        pass
+    # Fallback: try to find a JSON object { ... } in the text
+    try:
+        start = text.find("{")
+        end = text.rfind("}")
+        if start != -1 and end != -1 and end > start:
+            data = json.loads(text[start:end+1])
+            return _extract_scores(data)
+    except Exception:
+        pass
+    # Last resort: try to extract numeric scores by label
+    try:
+        scores = {}
+        for label in ("accuracy", "reasoning", "tool_usage", "safety"):
+            idx = text.lower().find(label)
+            if idx != -1:
+                chunk = text[idx:idx+30]
+                for token in chunk.replace(",", " ").split():
+                    try:
+                        scores[label] = float(token)
+                        break
+                    except ValueError:
+                        continue
+        if scores:
+            scores.setdefault("accuracy", 50)
+            scores.setdefault("reasoning", 50)
+            scores.setdefault("tool_usage", 50)
+            scores.setdefault("safety", 100)
+            return {
+                "accuracy":    scores["accuracy"],
+                "reasoning":   scores["reasoning"],
+                "tool_usage":  scores["tool_usage"],
+                "safety":      scores["safety"],
+                "explanation": "",
+            }
+    except Exception:
+        pass
+    return None
+
+
+def _extract_scores(data: dict) -> dict:
+    return {
+        "accuracy":    float(data.get("accuracy", 50)),
+        "reasoning":   float(data.get("reasoning", 50)),
+        "tool_usage":  float(data.get("tool_usage", 50)),
+        "safety":      float(data.get("safety", 100)),
+        "explanation": str(data.get("explanation", "")),
+    }
 
 
 def _estimate_eval_cost(prompt: str) -> float:
