@@ -59,7 +59,8 @@ export default function EvalsPage() {
       setAvgScore(e.avg_score);
       setPassRate(e.pass_rate);
       setScores(s);
-    }).finally(() => setLoading(false));
+    }).catch(() => { /* server offline */ }).finally(() => setLoading(false));
+
   }, []);
 
   if (loading) {
