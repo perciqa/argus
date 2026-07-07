@@ -297,6 +297,28 @@ export default function TracesPage() {
             </div>
 
             <SpanTimeline spans={selected.spans} />
+
+            {/* View full trace link */}
+            <div style={{ marginTop: 24, paddingTop: 16, borderTop: "1px solid var(--grey)", textAlign: "center" }}>
+              <a
+                href={`/traces/${selected.trace_id}`}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
+                  fontSize: 12,
+                  fontWeight: 600,
+                  color: "var(--blue)",
+                  textDecoration: "none",
+                  padding: "6px 14px",
+                  borderRadius: 8,
+                  background: "var(--light-blue)",
+                  transition: "background 0.15s",
+                }}
+              >
+                <IconTimeline size={16} /> View full trace
+              </a>
+            </div>
           </>
         ) : null}
       </Drawer>
