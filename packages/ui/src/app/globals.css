@@ -668,3 +668,164 @@ body {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
 }
+
+/* =========================================================
+   WATERFALL TREE (traces/[id])
+   ========================================================= */
+
+.wf-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.wf-toolbar-btn {
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--lato);
+  color: var(--dark-grey);
+  background: var(--grey);
+  border: none;
+  border-radius: 6px;
+  padding: 5px 12px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.wf-toolbar-btn:hover {
+  background: var(--blue);
+  color: var(--light);
+}
+
+.wf-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.wf-table th {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--dark-grey);
+  border-bottom: 1px solid var(--grey);
+  padding-bottom: 10px;
+  text-align: left;
+}
+
+.wf-row {
+  cursor: pointer;
+  transition: background 0.12s;
+  border-left: 3px solid transparent;
+  position: relative;
+}
+
+.wf-row::before {
+  content: '';
+  position: absolute;
+  left: 9px;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--grey);
+  pointer-events: none;
+}
+
+.wf-depth-0::before { display: none; }
+
+.wf-row:hover { background: var(--grey); }
+
+.wf-row-selected {
+  background: var(--light-blue) !important;
+}
+
+.wf-row-error {
+  background: var(--light-red);
+}
+
+.wf-row-error:hover {
+  background: #ffd6d4;
+}
+
+.wf-name-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 0;
+  min-height: 36px;
+  position: relative;
+}
+
+.wf-chevron {
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--dark-grey);
+  flex-shrink: 0;
+  padding: 0;
+  border-radius: 3px;
+  transition: background 0.12s;
+}
+
+.wf-chevron:hover { background: var(--grey); }
+
+.wf-chevron-spacer {
+  width: 18px;
+  flex-shrink: 0;
+}
+
+.wf-span-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--dark);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.wf-sub-badge {
+  font-size: 10px;
+  font-weight: 600;
+  font-family: var(--lato);
+  padding: 1px 7px;
+  border-radius: 10px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.wf-sub-badge.model { background: var(--light-violet); color: var(--violet); }
+.wf-sub-badge.tool  { background: var(--light-orange); color: var(--orange); }
+.wf-sub-badge.error { background: var(--light-red); color: var(--red); }
+
+.wf-bar-wrap {
+  flex: 1;
+  height: 4px;
+  background: var(--grey);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-left: 12px;
+  min-width: 40px;
+}
+
+.wf-num {
+  font-size: 12px;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--dark-grey);
+  padding: 8px 12px;
+  white-space: nowrap;
+}
+
+.wf-empty {
+  text-align: center;
+  padding: 48px 0;
+  color: var(--dark-grey);
+  font-size: 13px;
+}

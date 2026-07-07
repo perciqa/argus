@@ -48,11 +48,23 @@ export interface SpanRow {
   duration_ms: number | null;
   model_name: string | null;
   model_provider: string | null;
+  model_base_url: string | null;
   prompt_tokens: number | null;
   completion_tokens: number | null;
   model_cost_usd: number | null;
+  model_latency_ms: number | null;
+  model_cached: number | null;
   tool_name: string | null;
+  tool_args_json: unknown | null;
+  tool_result_json: unknown | null;
+  tool_error: string | null;
+  tool_latency_ms: number | null;
+  input_json: unknown | null;
+  output_json: unknown | null;
+  attributes_json: Record<string, unknown> | null;
+  events_json: unknown[] | null;
   error_message: string | null;
+  error_type: string | null;
 }
 
 export interface TraceDetail extends TraceSummary {
@@ -80,8 +92,11 @@ export function listTraces(params?: {
   return get<TraceListResponse>(`/traces?${q}`);
 }
 
-export function getTrace(id: string) {
-  return get<TraceDetail>(`/traces/${id}`);
+export async function getTrace(id: string) {
+  const res = await fetch(`${BASE}/traces/${id}`, { cache: "no-store" });
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error(`GET /traces/${id} → ${res.status}`);
+  return res.json() as Promise<TraceDetail>;
 }
 
 // ---------------------------------------------------------------------------
