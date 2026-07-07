@@ -718,7 +718,21 @@ body {
   cursor: pointer;
   transition: background 0.12s;
   border-left: 3px solid transparent;
+  position: relative;
 }
+
+.wf-row::before {
+  content: '';
+  position: absolute;
+  left: 9px;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--grey);
+  pointer-events: none;
+}
+
+.wf-depth-0::before { display: none; }
 
 .wf-row:hover { background: var(--grey); }
 

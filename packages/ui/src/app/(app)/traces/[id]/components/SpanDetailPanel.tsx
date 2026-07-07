@@ -152,6 +152,7 @@ export function SpanDetailPanel({ span, opened, onClose }: SpanDetailPanelProps)
   const showToolArgs = span.tool_args_json != null;
   const showToolResult = span.tool_result_json != null;
   const showAttributes = span.attributes_json != null && Object.keys(span.attributes_json).length > 0;
+  const showEvents = span.events_json != null && (span.events_json as unknown[]).length > 0;
 
   return (
     <Drawer
@@ -194,6 +195,7 @@ export function SpanDetailPanel({ span, opened, onClose }: SpanDetailPanelProps)
         {showToolArgs && <JsonBlock label="Tool Arguments" data={span.tool_args_json} />}
         {showToolResult && <JsonBlock label="Tool Result" data={span.tool_result_json} />}
         {showAttributes && <JsonBlock label="Attributes" data={span.attributes_json} />}
+        {showEvents && <JsonBlock label="Events" data={span.events_json} />}
       </div>
     </Drawer>
   );

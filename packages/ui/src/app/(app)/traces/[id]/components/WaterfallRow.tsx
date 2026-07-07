@@ -37,14 +37,14 @@ export function WaterfallRow({
   const cls = KIND_CLASS[span.kind] ?? "internal";
   const pct = maxDurationMs > 0 ? Math.max(2, ((span.duration_ms ?? 0) / maxDurationMs) * 100) : 0;
   const tokens =
-    span.completion_tokens != null
-      ? span.completion_tokens
-      : span.prompt_tokens;
+    span.completion_tokens != null && span.prompt_tokens != null
+      ? span.completion_tokens + span.prompt_tokens
+      : span.completion_tokens ?? span.prompt_tokens;
   const isError = span.status === "error";
 
   return (
     <tr
-      className={`wf-row ${isError ? "wf-row-error" : ""} ${selected ? "wf-row-selected" : ""}`}
+      className={`wf-row wf-depth-${depth} ${isError ? "wf-row-error" : ""} ${selected ? "wf-row-selected" : ""}`}
       onClick={onSelect}
     >
       <td style={{ paddingLeft: depth * 24 + 8 }}>
@@ -78,6 +78,7 @@ export function WaterfallRow({
             <div
               className={`span-duration-bar ${cls}`}
               style={{ width: `${pct}%` }}
+              title={`${fmtMs(span.duration_ms)}`}
             />
           </div>
         </div>

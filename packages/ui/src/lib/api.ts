@@ -92,8 +92,11 @@ export function listTraces(params?: {
   return get<TraceListResponse>(`/traces?${q}`);
 }
 
-export function getTrace(id: string) {
-  return get<TraceDetail>(`/traces/${id}`);
+export async function getTrace(id: string) {
+  const res = await fetch(`${BASE}/traces/${id}`, { cache: "no-store" });
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error(`GET /traces/${id} → ${res.status}`);
+  return res.json() as Promise<TraceDetail>;
 }
 
 // ---------------------------------------------------------------------------
