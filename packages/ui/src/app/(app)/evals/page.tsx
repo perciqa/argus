@@ -78,7 +78,7 @@ export default function EvalsPage() {
     <div className="page-container">
       <div className="page-header">
         <h1 className="page-title">Evals</h1>
-        <p className="page-subtitle">Automated quality assessment via Gemma judge · {total} evals</p>
+        <p className="page-subtitle">Automated quality assessment · LLM judge via Fireworks AI · {total} evals</p>
       </div>
 
       {evals.length === 0 ? (
@@ -111,7 +111,7 @@ export default function EvalsPage() {
               <Card p="md">
                 <Text className="stat-card-label">Total Evals</Text>
                 <div className="stat-card-value">{total}</div>
-                <Text size="xs" c="dimmed" mt={4}>Gemma judge · $0.00</Text>
+                <Text size="xs" c="dimmed" mt={4}>Fireworks serverless · ~$0.00042/eval</Text>
               </Card>
             </Grid.Col>
             <Grid.Col span={3}>

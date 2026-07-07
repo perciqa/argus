@@ -17,9 +17,15 @@ PRICING_TABLE: dict[str, dict[str, float]] = {
     # Local models — always free (AMD Developer Cloud / ROCm)
     "local": {"input": 0.00, "output": 0.00},
 
-    # Fireworks AI models (July 2026)
+    # Fireworks AI models (July 2026) — serverless pricing per 1M tokens
     "accounts/fireworks/models/gemma2-9b-it":              {"input": 0.05,  "output": 0.05},
-    "accounts/fireworks/models/gemma-27b-it":              {"input": 0.10,  "output": 0.10},
+    "accounts/fireworks/models/gemma-3-1b-it":             {"input": 0.05,  "output": 0.05},
+    "accounts/fireworks/models/gemma-3-4b-it":             {"input": 0.05,  "output": 0.05},
+    "accounts/fireworks/models/gemma-3-12b-it":            {"input": 0.10,  "output": 0.10},
+    "accounts/fireworks/models/gemma-3-27b-it":            {"input": 0.22,  "output": 0.22},
+    "accounts/fireworks/models/gemma-4-27b-it":            {"input": 0.30,  "output": 0.30},
+    "accounts/fireworks/models/deepseek-v4-flash":         {"input": 0.14,  "output": 0.28},
+    "accounts/fireworks/models/deepseek-v4-pro":           {"input": 1.74,  "output": 3.48},
     "accounts/fireworks/models/deepseek-v3":               {"input": 0.90,  "output": 0.90},
     "accounts/fireworks/models/deepseek-r1":               {"input": 3.00,  "output": 8.00},
     "accounts/fireworks/models/qwen3-30b-a3b":             {"input": 0.15,  "output": 0.60},
