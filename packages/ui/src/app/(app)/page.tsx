@@ -202,7 +202,7 @@ export default function OverviewPage() {
       <ul className="box-info">
         <li className="box-info-item">
           <div className="box-info-icon blue">
-            <IconCoin size={34} stroke={1.6} />
+            <IconCoin size={22} stroke={1.6} />
           </div>
           <div className="box-info-text">
             <h3 className="mono">{fmtCost(today?.total_cost_usd ?? 0)}</h3>
@@ -217,7 +217,7 @@ export default function OverviewPage() {
 
         <li className="box-info-item">
           <div className="box-info-icon green">
-            <IconBolt size={34} stroke={1.6} />
+            <IconBolt size={22} stroke={1.6} />
           </div>
           <div className="box-info-text">
             <h3 className="mono">{fmtTokens(today?.local_tokens ?? 0)}</h3>
@@ -228,7 +228,7 @@ export default function OverviewPage() {
 
         <li className="box-info-item">
           <div className="box-info-icon violet">
-            <IconShieldCheck size={34} stroke={1.6} />
+            <IconShieldCheck size={22} stroke={1.6} />
           </div>
           <div className="box-info-text">
             <h3>
@@ -247,7 +247,7 @@ export default function OverviewPage() {
 
         <li className="box-info-item">
           <div className="box-info-icon orange">
-            <IconUsers size={34} stroke={1.6} />
+            <IconUsers size={22} stroke={1.6} />
           </div>
           <div className="box-info-text">
             <h3>{agentCount}</h3>
