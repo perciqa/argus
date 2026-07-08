@@ -41,19 +41,23 @@ docker compose up --build
 Or instrument your own agent:
 
 ```python
-from ratioc import ArgusTracer
+import ratioc as argus
+from openai import OpenAI
 
-async with ArgusTracer(
-    agent_name="my-agent",
-    task="Explain quantum entanglement",
-    server_url="http://localhost:8000",
-) as tracer:
-    with tracer.model_call("gemma3:27b", prompt_tokens=800) as span:
-        result = await llm.complete(task)
-        span.set_completion_tokens(result.usage.completion_tokens)
+argus.init(server_url="http://localhost:8000", agent_name="my-agent")
+client = OpenAI(base_url="http://localhost:11434/v1", api_key="ollama")
 
-    with tracer.tool_call("web_search") as span:
-        docs = await search(task)
+@argus.trace(kind="agent")
+def my_agent(query: str) -> str:
+    # OpenAI calls are auto-intercepted — no extra code needed
+    response = client.chat.completions.create(
+        model="gemma3:27b",
+        messages=[{"role": "user", "content": query}]
+    )
+    return response.choices[0].message.content
+
+# Every call is traced, costed, and scored automatically
+my_agent("Explain quantum entanglement")
 ```
 
 ---
