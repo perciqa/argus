@@ -393,6 +393,12 @@ body {
   transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
 
+.box-info-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
 .box-info-item:hover {
   box-shadow: 0 6px 20px rgba(0,0,0,.09);
   transform: translateY(-1px);
@@ -427,13 +433,13 @@ body {
 .box-info-text p {
   font-size: 12px;
   color: var(--dark-grey);
-  margin-top: 2px;
+  margin: 0;
 }
 
 .box-info-text .sub {
   font-size: 11px;
   color: var(--dark-grey);
-  margin-top: 2px;
+  margin: 0;
 }
 
 /* Evals page stat card label */
