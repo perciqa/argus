@@ -41,7 +41,7 @@ docker compose up --build
 Or instrument your own agent:
 
 ```python
-import ratioc as argus
+import argus
 from openai import OpenAI
 
 argus.init(server_url="http://localhost:8000", agent_name="my-agent")
@@ -140,7 +140,7 @@ bash scripts/seed_demo.sh   # populate 12 demo traces
 ```
 argus/
 ├── packages/
-│   ├── sdk/          # Python SDK (ratioc) — ArgusTracer
+│   ├── sdk/          # Python SDK (argus)
 │   ├── server/       # FastAPI backend + eval engine
 │   └── ui/           # Next.js 16 dashboard (AdminHub design)
 ├── scripts/

@@ -1,8 +1,8 @@
 """Interceptor unit tests — provider detection and trace integration."""
 
 import pytest
-from ratioc.interceptor import _detect_provider
-from ratioc.models import ModelProvider, Trace, Span, SpanKind
+from argus.interceptor import _detect_provider
+from argus.models import ModelProvider, Trace, Span, SpanKind
 
 
 class TestProviderDetection:
@@ -44,8 +44,8 @@ class TestRecordModelCallIntegration:
     """Integration-style tests verifying _record_model_call works with active traces."""
 
     def test_record_with_active_trace_creates_model_span(self):
-        from ratioc.interceptor import _record_model_call
-        from ratioc.trace import _current_trace, _current_span
+        from argus.interceptor import _record_model_call
+        from argus.trace import _current_trace, _current_span
 
         trace = Trace(agent_name="test", trace_id="int-test-001")
         root = Span(
@@ -97,8 +97,8 @@ class TestRecordModelCallIntegration:
             _current_span.reset(token_s)
 
     def test_record_without_active_trace_is_noop(self):
-        from ratioc.interceptor import _record_model_call
-        from ratioc.trace import _current_trace, _current_span
+        from argus.interceptor import _record_model_call
+        from argus.trace import _current_trace, _current_span
 
         # Ensure no active trace
         _current_trace.set(None)
@@ -116,8 +116,8 @@ class TestRecordModelCallIntegration:
         assert _current_trace.get() is None
 
     def test_record_with_fireworks_provider_tracks_cloud_tokens(self):
-        from ratioc.interceptor import _record_model_call
-        from ratioc.trace import _current_trace, _current_span
+        from argus.interceptor import _record_model_call
+        from argus.trace import _current_trace, _current_span
 
         trace = Trace(agent_name="test", trace_id="fw-test-001")
         root = Span(span_id="r1", trace_id="fw-test-001", name="root", kind=SpanKind.AGENT)
@@ -158,12 +158,12 @@ class TestRecordModelCallIntegration:
             _current_span.reset(token_s)
 
     def test_double_patch_is_idempotent(self):
-        from ratioc.interceptor import patch_openai_client, _patched
+        from argus.interceptor import patch_openai_client, _patched
 
         was_patched = _patched
 
         # Reset so we can test fresh
-        import ratioc.interceptor as mod
+        import argus.interceptor as mod
         mod._patched = False
 
         try:

@@ -1,5 +1,5 @@
 """
-Argus demo — simulated tools with full ratioc SDK instrumentation.
+Argus demo — simulated tools with full Argus SDK instrumentation.
 
 Each tool is wrapped with @argus.trace(kind="tool_call") so every invocation
 appears as a discrete node in the trace tree with timing and I/O captured.
@@ -8,7 +8,7 @@ appears as a discrete node in the trace tree with timing and I/O captured.
 import asyncio
 import random
 
-import ratioc as argus
+import argus
 
 _ORDERS = {
     "ORD-8821": {"order_id": "ORD-8821", "status": "delivered", "customer": "acme@example.com", "total_usd": 2450.00, "items": ["GPU Server Rack × 4", "Infiniband Switch × 2"]},

@@ -5,8 +5,8 @@ import tempfile
 from pathlib import Path
 
 import pytest
-from ratioc.models import Trace, Span, SpanKind
-from ratioc.exporter import BatchExporter
+from argus.models import Trace, Span, SpanKind
+from argus.exporter import BatchExporter
 
 
 @pytest.fixture

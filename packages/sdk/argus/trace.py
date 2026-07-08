@@ -15,7 +15,7 @@ import json
 import logging
 from typing import Any, Callable, Optional
 
-from ratioc.models import Span, SpanKind, SpanStatus, Trace
+from argus.models import Span, SpanKind, SpanStatus, Trace
 
 logger = logging.getLogger("argus.trace")
 
@@ -89,7 +89,7 @@ class BudgetExceededError(RuntimeError):
 
 def _check_budget(trace: Trace) -> None:
     """Raise BudgetExceededError if the trace has exceeded its cost cap."""
-    from ratioc.config import get_config
+    from argus.config import get_config
     cfg = get_config()
     if cfg.budget_cap_usd is not None and trace.total_cost_usd > cfg.budget_cap_usd:
         raise BudgetExceededError(
@@ -172,7 +172,7 @@ class trace:
         token_t = token_s = None
 
         try:
-            from ratioc.config import get_config
+            from argus.config import get_config
             cfg = get_config()
 
             if is_root:
@@ -224,7 +224,7 @@ class trace:
                 if token_t is not None:
                     _current_trace.reset(token_t)
                 try:
-                    from ratioc.config import get_exporter
+                    from argus.config import get_exporter
                     get_exporter().enqueue(trace_obj)
                 except Exception as exc:
                     logger.warning("Failed to enqueue trace: %s", exc)
@@ -243,7 +243,7 @@ class trace:
         token_t = token_s = None
 
         try:
-            from ratioc.config import get_config
+            from argus.config import get_config
             cfg = get_config()
 
             if is_root:
@@ -295,7 +295,7 @@ class trace:
                 if token_t is not None:
                     _current_trace.reset(token_t)
                 try:
-                    from ratioc.config import get_exporter
+                    from argus.config import get_exporter
                     get_exporter().enqueue(trace_obj)
                 except Exception as exc:
                     logger.warning("Failed to enqueue trace: %s", exc)
@@ -310,7 +310,7 @@ class trace:
         parent_span  = _current_span.get()
         self._is_root = parent_trace is None
 
-        from ratioc.config import get_config
+        from argus.config import get_config
         cfg = get_config()
 
         if self._is_root:
@@ -348,7 +348,7 @@ class trace:
             if self._token_trace is not None:
                 _current_trace.reset(self._token_trace)
             try:
-                from ratioc.config import get_exporter
+                from argus.config import get_exporter
                 get_exporter().enqueue(self._trace_obj)
             except Exception as exc:
                 logger.warning("Failed to enqueue trace: %s", exc)
