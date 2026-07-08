@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Badge, Card, Grid, Loader, Table, Text } from "@mantine/core";
+import { Badge, Card, Loader, Table, Text } from "@mantine/core";
 import { LineChart } from "@mantine/charts";
 import { listEvals, getEvalScores, type EvalSummary, type ScorePoint } from "@/lib/api";
 
@@ -45,9 +45,9 @@ function timeAgo(iso: string) {
 }
 
 export default function EvalsPage() {
-  const [evals, setEvals]     = useState<EvalSummary[]>([]);
-  const [scores, setScores]   = useState<ScorePoint[]>([]);
-  const [total, setTotal]     = useState(0);
+  const [evals, setEvals]         = useState<EvalSummary[]>([]);
+  const [scores, setScores]       = useState<ScorePoint[]>([]);
+  const [total, setTotal]         = useState(0);
   const [avgScore, setAvgScore]   = useState<number | null>(null);
   const [passRate, setPassRate]   = useState<number | null>(null);
   const [loading, setLoading]     = useState(true);
@@ -60,12 +60,11 @@ export default function EvalsPage() {
       setPassRate(e.pass_rate);
       setScores(s);
     }).catch(() => { /* server offline */ }).finally(() => setLoading(false));
-
   }, []);
 
   if (loading) {
     return (
-      <div className="page-container" style={{ display: "flex", justifyContent: "center", paddingTop: 80 }}>
+      <div style={{ display: "flex", justifyContent: "center", paddingTop: 80 }}>
         <Loader color="blue" />
       </div>
     );
@@ -75,15 +74,28 @@ export default function EvalsPage() {
   const failCount = evals.filter((e) => e.verdict === "fail").length;
   const warnCount = evals.filter((e) => e.verdict === "warn").length;
 
+  const scoreColor = avgScore != null
+    ? (avgScore >= 70 ? "#059669" : avgScore >= 50 ? "#d97706" : "#dc2626")
+    : "var(--dark-grey)";
+
+  const judgeModel = evals[0]?.judge_model ?? "gemma2:9b";
+
   return (
-    <div className="page-container">
-      <div className="page-header">
-        <h1 className="page-title">Evals</h1>
-        <p className="page-subtitle">Automated quality assessment · LLM judge via Fireworks AI · {total} evals</p>
+    <>
+      {/* Page head — consistent with finops */}
+      <div className="page-head">
+        <div className="page-head-left">
+          <h1>Evals</h1>
+          <ul className="breadcrumb">
+            <li><span style={{ color: "var(--dark-grey)" }}>Argus</span></li>
+            <li className="breadcrumb-sep">›</li>
+            <li><span className="breadcrumb-active">Evals</span></li>
+          </ul>
+        </div>
       </div>
 
       {evals.length === 0 ? (
-        <Card p="xl" ta="center">
+        <Card p="xl" ta="center" radius="md" shadow="xs" withBorder>
           <Text size="sm" c="dimmed" mb={4}>No evals yet.</Text>
           <Text size="xs" c="dimmed">
             Evals run automatically in the background after each trace is ingested.
@@ -91,44 +103,77 @@ export default function EvalsPage() {
         </Card>
       ) : (
         <>
-          {/* Score overview */}
-          <Grid mb={24}>
-            <Grid.Col span={3}>
-              <Card p="md" style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-                <Text className="stat-card-label" mb={8}>Avg Score</Text>
-                {avgScore != null ? <ScoreRing score={avgScore} /> : <Text size="xl" fw={700}>—</Text>}
-              </Card>
-            </Grid.Col>
-            <Grid.Col span={3}>
-              <Card p="md">
-                <Text className="stat-card-label">Pass Rate</Text>
-                <div className="stat-card-value">
-                  {passRate != null ? `${(passRate * 100).toFixed(0)}%` : "—"}
-                </div>
-                <Text size="xs" c="dimmed" mt={4}>{passCount} pass · {warnCount} warn · {failCount} fail</Text>
-              </Card>
-            </Grid.Col>
-            <Grid.Col span={3}>
-              <Card p="md">
-                <Text className="stat-card-label">Total Evals</Text>
-                <div className="stat-card-value">{total}</div>
-                <Text size="xs" c="dimmed" mt={4}>Fireworks serverless · ~$0.00042/eval</Text>
-              </Card>
-            </Grid.Col>
-            <Grid.Col span={3}>
-              <Card p="md">
-                <Text className="stat-card-label">Judge Model</Text>
-                <div className="stat-card-value" style={{ fontSize: 14, marginTop: 8 }}>
-                  {evals[0]?.judge_model ?? "gemma2:9b"}
-                </div>
-                <Badge variant="light" color="green" size="xs" mt={6}>Local · free</Badge>
-              </Card>
-            </Grid.Col>
-          </Grid>
+          {/* Stat cards — AdminHub box-info style */}
+          <div className="box-info" style={{ gridTemplateColumns: "repeat(4, 1fr)" }}>
+
+            {/* Avg Score */}
+            <div className="box-info-item" style={{ flexDirection: "column", alignItems: "flex-start", gap: 10 }}>
+              <p className="evals-stat-label">Avg Score</p>
+              <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                {avgScore != null ? (
+                  <ScoreRing score={avgScore} />
+                ) : (
+                  <span style={{ fontSize: 28, fontWeight: 700, color: "var(--dark-grey)" }}>—</span>
+                )}
+                {avgScore != null && (
+                  <div>
+                    <div style={{ fontSize: 26, fontWeight: 700, color: scoreColor, lineHeight: 1.1, letterSpacing: "-0.03em" }}>
+                      {avgScore.toFixed(0)}
+                      <span style={{ fontSize: 13, fontWeight: 500, color: "var(--dark-grey)", marginLeft: 2 }}>/100</span>
+                    </div>
+                    <div style={{ fontSize: 12, color: "var(--dark-grey)", marginTop: 3 }}>
+                      {avgScore >= 70 ? "Good" : avgScore >= 50 ? "Fair" : "Poor"}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Pass Rate */}
+            <div className="box-info-item" style={{ flexDirection: "column", alignItems: "flex-start", gap: 10 }}>
+              <p className="evals-stat-label">Pass Rate</p>
+              <div style={{ fontSize: 32, fontWeight: 700, color: "var(--dark)", lineHeight: 1.1, letterSpacing: "-0.03em" }}>
+                {passRate != null ? `${(passRate * 100).toFixed(0)}%` : "—"}
+              </div>
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                <Badge color="green" variant="light" size="xs">{passCount} pass</Badge>
+                <Badge color="orange" variant="light" size="xs">{warnCount} warn</Badge>
+                <Badge color="red" variant="light" size="xs">{failCount} fail</Badge>
+              </div>
+            </div>
+
+            {/* Total Evals */}
+            <div className="box-info-item" style={{ flexDirection: "column", alignItems: "flex-start", gap: 10 }}>
+              <p className="evals-stat-label">Total Evals</p>
+              <div style={{ fontSize: 32, fontWeight: 700, color: "var(--dark)", lineHeight: 1.1, letterSpacing: "-0.03em" }}>
+                {total}
+              </div>
+              <div style={{ fontSize: 12, color: "var(--dark-grey)" }}>
+                Fireworks serverless · ~$0.00042/eval
+              </div>
+            </div>
+
+            {/* Judge Model */}
+            <div className="box-info-item" style={{ flexDirection: "column", alignItems: "flex-start", gap: 10 }}>
+              <p className="evals-stat-label">Judge Model</p>
+              <div style={{
+                fontSize: 12,
+                fontWeight: 600,
+                color: "var(--dark)",
+                wordBreak: "break-all",
+                lineHeight: 1.5,
+                fontFamily: "var(--font-mono)",
+                flex: 1,
+              }}>
+                {judgeModel}
+              </div>
+              <Badge variant="light" color="green" size="xs">Local · free</Badge>
+            </div>
+          </div>
 
           {/* Score trend chart */}
           {scores.length > 0 && (
-            <Card p="md" mb={24}>
+            <Card p="md" mb={24} radius="md" shadow="xs" withBorder>
               <Text size="sm" fw={600} mb={16}>Score Trend (7 days)</Text>
               <LineChart
                 h={200}
@@ -149,8 +194,8 @@ export default function EvalsPage() {
           )}
 
           {/* Evals table */}
-          <Card p={0} style={{ overflow: "hidden" }}>
-            <div style={{ padding: "12px 16px", borderBottom: "1px solid #e2e8f0" }}>
+          <Card p={0} style={{ overflow: "hidden" }} radius="md" shadow="xs" withBorder>
+            <div style={{ padding: "12px 16px", borderBottom: "1px solid var(--color-border)" }}>
               <Text size="sm" fw={600}>Recent Evals</Text>
             </div>
             <Table className="trace-table" horizontalSpacing="md" verticalSpacing="sm">
@@ -194,6 +239,6 @@ export default function EvalsPage() {
           </Card>
         </>
       )}
-    </div>
+    </>
   );
 }

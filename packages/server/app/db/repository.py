@@ -131,6 +131,39 @@ async def upsert_trace(trace: dict) -> None:
 
         await db.commit()
 
+        # Materialize cost record for FinOps dashboards
+        await _materialize_cost_record(db, trace)
+
+
+async def _materialize_cost_record(db: aiosqlite.Connection, trace: dict) -> None:
+    """Upsert an hourly cost bucket from a newly ingested trace."""
+    hour = trace.get("start_time", "")[:13] + ":00"
+    agent = trace.get("agent_name", "default")
+    cost  = trace.get("total_cost_usd", 0.0)
+    tokens = trace.get("total_tokens", 0)
+    local_t = trace.get("local_tokens", 0)
+    cloud_t = trace.get("cloud_tokens", 0)
+    is_success = 1 if trace.get("status") == "ok" else 0
+    is_error   = 1 if trace.get("status") == "error" else 0
+
+    await db.execute("""
+        INSERT INTO cost_records
+            (period, agent_name, total_cost_usd, local_cost_usd, cloud_cost_usd,
+             total_tokens, local_tokens, cloud_tokens,
+             trace_count, success_count, error_count)
+        VALUES (?, ?, ?, 0.0, ?, ?, ?, ?, 1, ?, ?)
+        ON CONFLICT(period, agent_name) DO UPDATE SET
+            total_cost_usd = total_cost_usd + excluded.total_cost_usd,
+            cloud_cost_usd = cloud_cost_usd + excluded.cloud_cost_usd,
+            total_tokens   = total_tokens   + excluded.total_tokens,
+            local_tokens   = local_tokens   + excluded.local_tokens,
+            cloud_tokens   = cloud_tokens   + excluded.cloud_tokens,
+            trace_count    = trace_count    + 1,
+            success_count  = success_count  + excluded.success_count,
+            error_count    = error_count    + excluded.error_count
+    """, (hour, agent, cost, cost, tokens, local_t, cloud_t, is_success, is_error))
+    await db.commit()
+
 
 # ---------------------------------------------------------------------------
 # Trace reads

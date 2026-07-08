@@ -1,5 +1,5 @@
 """
-Argus demo agent — multi-model routing with full ratioc SDK instrumentation.
+Argus demo agent — multi-model routing with full Argus SDK instrumentation.
 
 Demonstrates:
   - Hybrid local/cloud model routing (local=$0, cloud=priced)
@@ -21,8 +21,8 @@ import time
 import sys
 from typing import Optional
 
-import ratioc as argus
-from ratioc.models import ModelCall, ModelProvider
+import argus
+from argus.models import ModelCall, ModelProvider
 
 
 SERVER_URL = os.environ.get("ARGUS_SERVER_URL", "http://localhost:8000")

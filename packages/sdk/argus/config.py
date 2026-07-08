@@ -38,7 +38,7 @@ def get_exporter():
     """Return the active exporter, creating a default one if needed."""
     global _exporter
     if _exporter is None:
-        from ratioc.exporter import BatchExporter
+        from argus.exporter import BatchExporter
         cfg = get_config()
         _exporter = BatchExporter(
             server_url=cfg.server_url,
@@ -91,11 +91,11 @@ def init(
 
     # Apply custom pricing
     if custom_pricing:
-        from ratioc.cost import PRICING_TABLE
+        from argus.cost import PRICING_TABLE
         PRICING_TABLE.update(custom_pricing)
 
     # Start exporter
-    from ratioc.exporter import BatchExporter
+    from argus.exporter import BatchExporter
     _exporter = BatchExporter(
         server_url=server_url,
         batch_size=export_batch_size,
@@ -106,5 +106,5 @@ def init(
 
     # Auto-patch OpenAI client
     if auto_intercept:
-        from ratioc.interceptor import patch_openai_client
+        from argus.interceptor import patch_openai_client
         patch_openai_client()

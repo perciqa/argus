@@ -1,10 +1,12 @@
 "use client";
-import { IconSearch } from "@tabler/icons-react";
+import { ActionIcon, useMantineColorScheme } from "@mantine/core";
+import { IconSearch, IconSun, IconMoon } from "@tabler/icons-react";
 
 export function TopNav({ title }: { title?: string }) {
+  const { colorScheme, setColorScheme } = useMantineColorScheme();
+
   return (
     <nav className="topnav">
-      {/* Search */}
       <div className="topnav-search">
         <div className="topnav-search-inner">
           <input
@@ -18,8 +20,22 @@ export function TopNav({ title }: { title?: string }) {
         </div>
       </div>
 
-      {/* Right side */}
       <div className="topnav-right">
+        <ActionIcon
+          variant="subtle"
+          size="md"
+          onClick={() =>
+            setColorScheme(colorScheme === "dark" ? "light" : "dark")
+          }
+          aria-label="Toggle theme"
+          color="gray"
+        >
+          {colorScheme === "dark" ? (
+            <IconSun size={18} />
+          ) : (
+            <IconMoon size={18} />
+          )}
+        </ActionIcon>
         <span
           style={{
             fontSize: 12,

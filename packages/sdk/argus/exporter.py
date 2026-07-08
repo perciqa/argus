@@ -17,7 +17,7 @@ from typing import TYPE_CHECKING, Optional
 import httpx
 
 if TYPE_CHECKING:
-    from ratioc.models import Trace
+    from argus.models import Trace
 
 logger = logging.getLogger("argus.exporter")
 

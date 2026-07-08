@@ -14,7 +14,7 @@ import logging
 import time
 from typing import Any
 
-from ratioc.models import ModelCall, ModelProvider, Span, SpanKind, SpanStatus
+from argus.models import ModelCall, ModelProvider, Span, SpanKind, SpanStatus
 
 logger = logging.getLogger("argus.interceptor")
 
@@ -43,8 +43,8 @@ def _record_model_call(
     elapsed_ms: float,
 ) -> None:
     """Attach a model_call span to the active trace."""
-    from ratioc.trace import _current_span, _current_trace
-    from ratioc.cost import calculate_cost
+    from argus.trace import _current_span, _current_trace
+    from argus.cost import calculate_cost
 
     current_span  = _current_span.get()
     current_trace = _current_trace.get()
@@ -103,7 +103,7 @@ def _record_model_call(
         current_trace.cloud_tokens  += total_tokens
 
     # Check budget after each model call
-    from ratioc.trace import _check_budget
+    from argus.trace import _check_budget
     try:
         _check_budget(current_trace)
     except Exception:
@@ -149,7 +149,7 @@ def patch_openai_client() -> None:
             _record_model_call(base_url, model, messages, response, elapsed_ms)
         except Exception as exc:
             # Budget exceeded — let it propagate
-            from ratioc.trace import BudgetExceededError
+            from argus.trace import BudgetExceededError
             if isinstance(exc, BudgetExceededError):
                 raise
             logger.debug("Interceptor recording error (non-fatal): %s", exc)
@@ -178,7 +178,7 @@ def patch_openai_client() -> None:
         try:
             _record_model_call(base_url, model, messages, response, elapsed_ms)
         except Exception as exc:
-            from ratioc.trace import BudgetExceededError
+            from argus.trace import BudgetExceededError
             if isinstance(exc, BudgetExceededError):
                 raise
             logger.debug("Async interceptor recording error (non-fatal): %s", exc)

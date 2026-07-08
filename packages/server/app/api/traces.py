@@ -49,6 +49,22 @@ async def ingest_trace(
         },
     )
 
+    # Broadcast cost alert if budget was exceeded
+    if trace.status.value == "error" and trace.error_message and (
+        "budget" in trace.error_message.lower()
+        or "BudgetExceeded" in (trace.error_message or "")
+    ):
+        background_tasks.add_task(
+            ws_manager.broadcast,
+            "cost_alert",
+            {
+                "trace_id":       trace.trace_id,
+                "agent_name":     trace.agent_name,
+                "actual_cost_usd": trace.total_cost_usd,
+                "error_message":  trace.error_message,
+            },
+        )
+
     # Fire eval engine (non-blocking)
     from app.eval.engine import evaluate_trace
     background_tasks.add_task(evaluate_trace, trace.trace_id)
@@ -85,3 +101,48 @@ async def get_trace(trace_id: str) -> TraceDetail:
     if row is None:
         raise HTTPException(status_code=404, detail=f"Trace {trace_id} not found")
     return TraceDetail(**row)
+
+
+@router.get("/{trace_id}/replay")
+async def replay_trace(trace_id: str) -> dict:
+    """Return ordered span timeline for step-by-step trajectory replay."""
+    row = await repo.get_trace_detail(trace_id)
+    if row is None:
+        raise HTTPException(status_code=404, detail=f"Trace {trace_id} not found")
+
+    # Build ordered flat timeline with step numbers
+    spans = row.get("spans", [])
+    steps = []
+    for i, span in enumerate(
+        sorted(spans, key=lambda s: s.get("start_time", ""))
+    ):
+        steps.append({
+            "step":        i + 1,
+            "span_id":     span.get("span_id"),
+            "name":        span.get("name"),
+            "kind":        span.get("kind"),
+            "status":      span.get("status"),
+            "duration_ms": span.get("duration_ms"),
+            "parent_span_id": span.get("parent_span_id"),
+            "model_call": {
+                "model":    span.get("model_name"),
+                "provider": span.get("model_provider"),
+                "tokens":   span.get("completion_tokens"),
+                "cost_usd": span.get("model_cost_usd"),
+            } if span.get("model_name") else None,
+            "tool_call": {
+                "name":  span.get("tool_name"),
+                "error": span.get("tool_error"),
+            } if span.get("tool_name") else None,
+            "error_message": span.get("error_message"),
+        })
+
+    return {
+        "trace_id":     trace_id,
+        "agent_name":   row.get("agent_name"),
+        "task":         row.get("task"),
+        "total_steps":  len(steps),
+        "duration_ms":  row.get("duration_ms"),
+        "total_cost_usd": row.get("total_cost_usd"),
+        "steps":        steps,
+    }

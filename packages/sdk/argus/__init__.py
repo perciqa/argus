@@ -2,7 +2,7 @@
 Argus by Perciqa — Agent Reliability Engine SDK.
 
 Quick start:
-    import ratioc as argus
+    import argus as argus
 
     argus.init(server_url="http://localhost:8000", agent_name="my-agent")
 
@@ -14,7 +14,7 @@ Quick start:
     my_agent("Explain quantum entanglement")
 """
 
-from ratioc.models import (
+from argus.models import (
     Trace,
     Span,
     SpanKind,
@@ -27,7 +27,7 @@ from ratioc.models import (
     EvalVerdict,
     CostRecord,
 )
-from ratioc.trace import (
+from argus.trace import (
     trace,
     start_trace,
     start_span,
@@ -35,9 +35,9 @@ from ratioc.trace import (
     get_current_span,
     BudgetExceededError,
 )
-from ratioc.config import init, get_config, get_exporter
-from ratioc.cost import PRICING_TABLE, calculate_cost
-from ratioc.interceptor import patch_openai_client
+from argus.config import init, get_config, get_exporter
+from argus.cost import PRICING_TABLE, calculate_cost
+from argus.interceptor import patch_openai_client
 
 __version__ = "0.1.0"
 

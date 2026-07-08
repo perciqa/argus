@@ -7,7 +7,7 @@ Local inference (AMD Developer Cloud / ROCm) is always $0.00.
 
 from __future__ import annotations
 
-from ratioc.models import ModelProvider
+from argus.models import ModelProvider
 
 # ---------------------------------------------------------------------------
 # Per 1M tokens pricing table

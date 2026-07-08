@@ -1,7 +1,7 @@
 """
 Argus Server — API request/response schemas.
 
-These mirror the SDK's wire format (ratioc.models) without
+These mirror the SDK's wire format (argus.models) without
 importing the SDK package, keeping the server self-contained.
 """
 

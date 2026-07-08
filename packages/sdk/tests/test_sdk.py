@@ -5,10 +5,10 @@ SDK tests — trace decorator, cost calculator, and models.
 import asyncio
 import pytest
 
-import ratioc as argus
-from ratioc.models import SpanKind, SpanStatus, ModelProvider
-from ratioc.cost import calculate_cost, PRICING_TABLE
-from ratioc.trace import _current_trace, _current_span
+import argus
+from argus.models import SpanKind, SpanStatus, ModelProvider
+from argus.cost import calculate_cost, PRICING_TABLE
+from argus.trace import _current_trace, _current_span
 
 
 # ---------------------------------------------------------------------------

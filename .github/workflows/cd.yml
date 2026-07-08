@@ -1,0 +1,66 @@
+name: CD
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    branches: ["main"]
+    types: [completed]
+
+jobs:
+  build:
+    name: Build & Validate
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create .env
+        run: |
+          cat > .env << 'EOF'
+          EVAL_SAMPLE_RATE=0.0
+          ARGUS_DB_PATH=/app/data/argus.db
+          EOF
+
+      - name: Build & start all services
+        run: docker compose up -d --build
+
+      - name: Wait for health
+        run: |
+          for i in $(seq 1 15); do
+            if curl -sf http://localhost:8000/api/health > /dev/null 2>&1; then
+              echo "Server healthy"
+              docker compose ps
+              exit 0
+            fi
+            echo "Waiting... ($i/15)"
+            sleep 4
+          done
+          echo "Server failed to start"
+          docker compose logs
+          exit 1
+
+      - name: Validate API endpoints
+        run: |
+          echo "=== Health ==="
+          curl -s http://localhost:8000/api/health | python3 -m json.tool
+          echo ""
+
+          echo "=== Traces ==="
+          TRACES=$(curl -s http://localhost:8000/api/traces)
+          echo "$TRACES" | python3 -c "import sys,json; d=json.load(sys.stdin); print(f'Traces: {d[\"total\"]}')"
+
+          echo "=== FinOps ==="
+          curl -s http://localhost:8000/api/finops/summary | python3 -m json.tool
+          echo ""
+
+          echo "=== UI ==="
+          curl -s -o /dev/null -w "UI HTTP %{http_code}\n" http://localhost:3000
+
+      - name: Dump logs on failure
+        if: failure()
+        run: |
+          echo "=== Server logs ==="
+          docker compose logs server
+          echo "=== UI logs ==="
+          docker compose logs ui

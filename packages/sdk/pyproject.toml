@@ -3,9 +3,9 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "ratioc"
+name = "argus"
 version = "0.1.0"
-description = "The Agent Reliability Engine — trace, evaluate, and optimize your AI agents."
+description = "Argus by Perciqa — Agent Reliability Engine SDK"
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.10"
@@ -22,7 +22,7 @@ dev = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["ratioc"]
+packages = ["argus"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
