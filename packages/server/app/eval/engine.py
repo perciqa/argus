@@ -13,6 +13,8 @@ import logging
 import os
 import time
 import uuid
+from datetime import datetime, timedelta, timezone
+from statistics import mean
 from typing import Optional
 
 import httpx
@@ -37,6 +39,16 @@ EVAL_SAMPLE_RATE  = float(os.getenv("EVAL_SAMPLE_RATE", "1.0"))
 # DeepSeek V4 Flash pricing (Fireworks serverless, per 1M tokens)
 _JUDGE_INPUT_PRICE_PER_M  = 0.14
 _JUDGE_OUTPUT_PRICE_PER_M = 0.28
+
+# ---------------------------------------------------------------------------
+# Drift detection configuration
+# ---------------------------------------------------------------------------
+
+DRIFT_ENABLED          = os.getenv("DRIFT_ENABLED", "true").lower() == "true"
+DRIFT_BASELINE_HOURS   = int(os.getenv("DRIFT_BASELINE_HOURS", "48"))
+DRIFT_RECENT_HOURS     = int(os.getenv("DRIFT_RECENT_HOURS", "24"))
+DRIFT_THRESHOLD_POINTS = float(os.getenv("DRIFT_THRESHOLD_POINTS", "10.0"))
+DRIFT_MIN_SAMPLES      = int(os.getenv("DRIFT_MIN_SAMPLES", "10"))
 
 JUDGE_PROMPT_TEMPLATE = """You are an expert AI agent evaluator for Argus by Perciqa.
 
@@ -100,6 +112,11 @@ async def evaluate_trace(trace_id: str) -> None:
             "Eval complete — trace=%s score=%.1f verdict=%s",
             trace_id, result["overall_score"], result["verdict"],
         )
+
+        # Check for quality drift in the background
+        agent = trace.get("agent_name")
+        if agent and DRIFT_ENABLED:
+            await check_drift(agent)
 
     except Exception as exc:
         logger.error("Eval engine error for trace %s: %s", trace_id, exc, exc_info=True)
@@ -252,3 +269,92 @@ def _estimate_eval_cost(prompt: str) -> float:
     input_cost  = (approx_input_tokens  / 1_000_000) * _JUDGE_INPUT_PRICE_PER_M
     output_cost = (approx_output_tokens / 1_000_000) * _JUDGE_OUTPUT_PRICE_PER_M
     return round(input_cost + output_cost, 8)
+
+
+# ---------------------------------------------------------------------------
+# Drift detection
+# ---------------------------------------------------------------------------
+
+async def check_drift(agent_name: str) -> Optional[dict]:
+    """
+    Detect quality drift by comparing recent eval scores against baseline.
+
+    Returns a drift alert dict if drift is detected, or None otherwise.
+    """
+    if not DRIFT_ENABLED:
+        return None
+
+    try:
+        import aiosqlite
+        from app.db.database import DB_PATH
+
+        now = datetime.now(timezone.utc)
+        recent_start   = now - timedelta(hours=DRIFT_RECENT_HOURS)
+        baseline_start = now - timedelta(hours=DRIFT_BASELINE_HOURS)
+        baseline_end   = recent_start
+
+        async with aiosqlite.connect(DB_PATH) as db:
+            db.row_factory = aiosqlite.Row
+
+            recent_rows = await db.execute_fetchall("""
+                SELECT e.overall_score
+                FROM eval_results e
+                JOIN traces t ON t.trace_id = e.trace_id
+                WHERE t.agent_name = ?
+                  AND e.evaluated_at >= ?
+                ORDER BY e.evaluated_at
+            """, (agent_name, recent_start.isoformat()))
+
+            baseline_rows = await db.execute_fetchall("""
+                SELECT e.overall_score
+                FROM eval_results e
+                JOIN traces t ON t.trace_id = e.trace_id
+                WHERE t.agent_name = ?
+                  AND e.evaluated_at >= ?
+                  AND e.evaluated_at < ?
+                ORDER BY e.evaluated_at
+            """, (agent_name, baseline_start.isoformat(), baseline_end.isoformat()))
+
+            recent_scores   = [r["overall_score"] for r in recent_rows]
+            baseline_scores = [r["overall_score"] for r in baseline_rows]
+
+            if (
+                len(recent_scores)   < DRIFT_MIN_SAMPLES
+                or len(baseline_scores) < DRIFT_MIN_SAMPLES
+            ):
+                return None
+
+            recent_avg   = mean(recent_scores)
+            baseline_avg = mean(baseline_scores)
+            drop = baseline_avg - recent_avg
+
+            if drop < DRIFT_THRESHOLD_POINTS:
+                return None
+
+            severity = (
+                "critical" if drop >= 20 else
+                "high"     if drop >= 15 else
+                "medium"
+            )
+
+            alert = {
+                "agent_name":   agent_name,
+                "metric":       "overall_score",
+                "baseline_avg": round(baseline_avg, 1),
+                "current_avg":  round(recent_avg, 1),
+                "drop_points":  round(drop, 1),
+                "window_hours": DRIFT_RECENT_HOURS,
+                "severity":     severity,
+            }
+
+            await ws_manager.broadcast("drift_alert", alert)
+            logger.warning(
+                "Drift detected — agent=%s drop=%.1f (%.1f→%.1f) severity=%s",
+                agent_name, drop, baseline_avg, recent_avg, severity,
+            )
+
+            return alert
+
+    except Exception as exc:
+        logger.error("Drift check failed for %s: %s", agent_name, exc)
+        return None
