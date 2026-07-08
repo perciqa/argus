@@ -421,6 +421,7 @@ body {
   color: var(--dark);
   letter-spacing: -0.02em;
   line-height: 1.2;
+  margin: 0;
 }
 
 .box-info-text p {
