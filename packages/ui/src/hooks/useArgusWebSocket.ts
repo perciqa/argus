@@ -14,7 +14,11 @@ export function useArgusWebSocket(onEvent?: (e: WsEvent) => void) {
   const [status, setStatus] = useState<WsStatus>("disconnected");
   const wsRef = useRef<WebSocket | null>(null);
   const onEventRef = useRef(onEvent);
-  onEventRef.current = onEvent;
+  const connectRef = useRef<() => void>(() => {});
+
+  useEffect(() => {
+    onEventRef.current = onEvent;
+  });
 
   const connect = useCallback(() => {
     if (wsRef.current?.readyState === WebSocket.OPEN) return;
@@ -36,14 +40,17 @@ export function useArgusWebSocket(onEvent?: (e: WsEvent) => void) {
 
     ws.onclose = () => {
       setStatus("disconnected");
-      // Reconnect after 3s
-      setTimeout(connect, 3000);
+      setTimeout(() => { connectRef.current(); }, 3000);
     };
 
     ws.onerror = () => {
       ws.close();
     };
   }, []);
+
+  useEffect(() => {
+    connectRef.current = connect;
+  }, [connect]);
 
   useEffect(() => {
     connect();

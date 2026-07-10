@@ -175,10 +175,14 @@ class trace:
             from argus.config import get_config
             cfg = get_config()
 
+            task = self.task
+            if task is None and "task" in kwargs:
+                task = kwargs["task"]
+
             if is_root:
                 trace_obj = Trace(
                     agent_name=self.agent_name or cfg.agent_name,
-                    task=self.task,
+                    task=task,
                 )
                 token_t = _current_trace.set(trace_obj)
             else:
@@ -246,10 +250,14 @@ class trace:
             from argus.config import get_config
             cfg = get_config()
 
+            task = self.task
+            if task is None and "task" in kwargs:
+                task = kwargs["task"]
+
             if is_root:
                 trace_obj = Trace(
                     agent_name=self.agent_name or cfg.agent_name,
-                    task=self.task,
+                    task=task,
                 )
                 token_t = _current_trace.set(trace_obj)
             else:
@@ -313,10 +321,12 @@ class trace:
         from argus.config import get_config
         cfg = get_config()
 
+        task = self.task
+
         if self._is_root:
             self._trace_obj = Trace(
                 agent_name=self.agent_name or cfg.agent_name,
-                task=self.task,
+                task=task,
             )
             self._token_trace = _current_trace.set(self._trace_obj)
         else:
