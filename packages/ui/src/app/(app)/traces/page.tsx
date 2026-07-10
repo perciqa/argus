@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Drawer, Group, Loader, Table, Text, Tooltip } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import {
@@ -82,7 +82,7 @@ export default function TracesPage() {
   const [selected, setSelected]           = useState<TraceDetail | null>(null);
   const [drawerOpen, setDrawerOpen]       = useState(false);
   const [loadingDetail, setLoadingDetail] = useState(false);
-  const newIds = useRef<Set<string>>(new Set());
+  const [newIds, setNewIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     listTraces({ limit: 50 })
@@ -95,11 +95,11 @@ export default function TracesPage() {
     useCallback((event: WsEvent) => {
       if (event.event === "new_trace") {
         const t = event.data as unknown as TraceSummary;
-        newIds.current.add(t.trace_id);
+        setNewIds((prev) => new Set([...prev, t.trace_id]));
         setTraces((prev) => [t, ...prev.slice(0, 49)]);
         setTotal((n) => n + 1);
         notifications.show({ title: "New trace", message: `${t.agent_name}${t.task ? ` · ${t.task}` : ""}`, color: "blue", autoClose: 3000 });
-        setTimeout(() => { newIds.current.delete(t.trace_id); }, 2000);
+        setTimeout(() => { setNewIds((prev) => { const n = new Set(prev); n.delete(t.trace_id); return n; }); }, 2000);
       }
       if (event.event === "eval_complete") {
         const d = event.data as { overall_score?: number; verdict?: string };
@@ -206,13 +206,13 @@ export default function TracesPage() {
                   <tr
                     key={t.trace_id}
                     onClick={() => openTrace(t.trace_id)}
-                    style={{
-                      cursor: "pointer",
-                      background: newIds.current.has(t.trace_id) ? "var(--light-blue)" : undefined,
-                      transition: "background 1.5s ease",
-                    }}
-                    onMouseEnter={(e) => { if (!newIds.current.has(t.trace_id)) (e.currentTarget as HTMLElement).style.background = "var(--grey)"; }}
-                    onMouseLeave={(e) => { if (!newIds.current.has(t.trace_id)) (e.currentTarget as HTMLElement).style.background = ""; }}
+                      style={{
+                        cursor: "pointer",
+                        background: newIds.has(t.trace_id) ? "var(--light-blue)" : undefined,
+                        transition: "background 1.5s ease",
+                      }}
+                      onMouseEnter={(e) => { if (!newIds.has(t.trace_id)) (e.currentTarget as HTMLElement).style.background = "var(--grey)"; }}
+                      onMouseLeave={(e) => { if (!newIds.has(t.trace_id)) (e.currentTarget as HTMLElement).style.background = ""; }}
                   >
                     <td style={{ padding: "14px 8px 14px 0" }}>
                       <span className="status-badge" style={{ background: STATUS_BG[t.status] ?? "var(--dark-grey)" }}>
