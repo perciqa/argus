@@ -13,7 +13,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import ALLOWED_ORIGINS
 from app.db.database import init_db
-from app.api import traces, finops, evals, health
+from app.api import traces, finops, evals, health, config
 from app.ws.manager import ws_manager
 
 
@@ -45,6 +45,7 @@ app.include_router(health.router, prefix="/api")
 app.include_router(traces.router, prefix="/api")
 app.include_router(finops.router, prefix="/api")
 app.include_router(evals.router, prefix="/api")
+app.include_router(config.router, prefix="/api")
 
 # WebSocket
 app.include_router(ws_manager.router)
