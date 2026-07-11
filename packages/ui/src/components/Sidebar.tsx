@@ -1,4 +1,5 @@
 "use client";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -8,6 +9,8 @@ import {
   IconChartBar,
   IconEye,
   IconActivity,
+  IconCopy,
+  IconCheck,
 } from "@tabler/icons-react";
 
 const NAV = [
@@ -29,6 +32,22 @@ const NAV = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const [apiKey, setApiKey] = useState("");
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/config")
+      .then((r) => r.json())
+      .then((d) => setApiKey(d.api_key || ""))
+      .catch(() => {});
+  }, []);
+
+  function handleCopy() {
+    navigator.clipboard.writeText(apiKey).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }
 
   function isActive(href: string) {
     return href === "/" ? pathname === "/" : pathname.startsWith(href);
@@ -71,6 +90,24 @@ export function Sidebar() {
           </div>
         ))}
       </nav>
+
+      {/* API Key */}
+      <div className="sidebar-api-key">
+        <span className="sidebar-api-key-label">API Key</span>
+        <button
+          type="button"
+          className="sidebar-api-key-value"
+          onClick={handleCopy}
+          title="Copy API key"
+        >
+          <span>{apiKey || "••••••••••••••••"}</span>
+          {copied ? (
+            <IconCheck size={12} stroke={2} />
+          ) : (
+            <IconCopy size={12} stroke={2} />
+          )}
+        </button>
+      </div>
 
       {/* Footer */}
       <div className="sidebar-footer">
