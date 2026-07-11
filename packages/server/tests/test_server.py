@@ -200,13 +200,7 @@ async def test_list_evals_empty(client: AsyncClient):
 @pytest.mark.asyncio
 async def test_ingest_trace_with_api_key_required(monkeypatch, client: AsyncClient):
     """When ARGUS_API_KEY is set, requests without it must be rejected."""
-    import importlib
-    from app.dependencies import auth
-    from app import config
-
     monkeypatch.setenv("ARGUS_API_KEY", "sk-test-secret")
-    importlib.reload(config)
-    importlib.reload(auth)
 
     resp = await client.post("/api/traces", json=SAMPLE_TRACE)
     assert resp.status_code == 401
@@ -215,13 +209,7 @@ async def test_ingest_trace_with_api_key_required(monkeypatch, client: AsyncClie
 @pytest.mark.asyncio
 async def test_ingest_trace_with_valid_api_key(monkeypatch, client: AsyncClient):
     """When ARGUS_API_KEY is set, requests with the correct key must succeed."""
-    import importlib
-    from app.dependencies import auth
-    from app import config
-
     monkeypatch.setenv("ARGUS_API_KEY", "sk-test-secret")
-    importlib.reload(config)
-    importlib.reload(auth)
 
     resp = await client.post(
         "/api/traces",
@@ -234,15 +222,10 @@ async def test_ingest_trace_with_valid_api_key(monkeypatch, client: AsyncClient)
 @pytest.mark.asyncio
 async def test_ingest_trace_no_api_key_when_unset(monkeypatch, client: AsyncClient):
     """When ARGUS_API_KEY is empty, ingestion must work without any key."""
-    import importlib
-    from app.dependencies import auth
-    from app import config
+    monkeypatch.delenv("ARGUS_API_KEY", raising=False)
 
-    monkeypatch.setenv("ARGUS_API_KEY", "")
-    importlib.reload(config)
-    importlib.reload(auth)
-
-    assert config.ARGUS_API_KEY == ""
+    from app.config import get_argus_api_key
+    assert get_argus_api_key() == ""
 
     resp = await client.post("/api/traces", json=SAMPLE_TRACE)
     assert resp.status_code == 201
