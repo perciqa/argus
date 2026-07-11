@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Depends, Query
 
 from app.db import repository as repo
+from app.dependencies.auth import require_api_key
 from app.schemas import EvalListResponse, EvalSummary
 
 router = APIRouter(prefix="/evals", tags=["evals"])
@@ -14,6 +15,7 @@ router = APIRouter(prefix="/evals", tags=["evals"])
 async def list_evals(
     limit:  int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
+    _: str | None = Depends(require_api_key),
 ) -> EvalListResponse:
     """List eval results, most recent first."""
     rows, total = await repo.list_evals(limit=limit, offset=offset)
@@ -32,13 +34,17 @@ async def list_evals(
 @router.get("/scores")
 async def get_scores(
     days: int = Query(7, ge=1, le=90),
+    _: str | None = Depends(require_api_key),
 ) -> list[dict]:
     """Daily average eval scores for the last N days — used for the drift chart."""
     return await repo.get_eval_scores(days=days)
 
 
 @router.get("/{eval_id}")
-async def get_eval(eval_id: str) -> dict:
+async def get_eval(
+    eval_id: str,
+    _: str | None = Depends(require_api_key),
+) -> dict:
     """Return a single eval result."""
     from app.db.repository import get_db
     async with await get_db() as db:

@@ -15,11 +15,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Generate API key
+        id: genkey
+        run: echo "ARGUS_API_KEY=arg_$(openssl rand -hex 24)" >> $GITHUB_ENV
+
       - name: Create .env
         run: |
-          cat > .env << 'EOF'
+          cat > .env << EOF
           EVAL_SAMPLE_RATE=0.0
           ARGUS_DB_PATH=/app/data/argus.db
+          ARGUS_API_KEY=${{ env.ARGUS_API_KEY }}
           EOF
 
       - name: Build & start all services
@@ -50,16 +55,22 @@ jobs:
 
       - name: Validate API endpoints
         run: |
+          AUTH="X-API-Key: ${{ env.ARGUS_API_KEY }}"
+
           echo "=== Health ==="
-          curl -s http://localhost:8000/api/health | python3 -m json.tool
+          curl -sf http://localhost:8000/api/health | python3 -m json.tool
           echo ""
 
           echo "=== Traces ==="
-          TRACES=$(curl -s http://localhost:8000/api/traces)
+          TRACES=$(curl -sf -H "$AUTH" http://localhost:8000/api/traces)
           echo "$TRACES" | python3 -c "import sys,json; d=json.load(sys.stdin); print(f'Traces: {d[\"total\"]}')"
 
           echo "=== FinOps ==="
-          curl -s http://localhost:8000/api/finops/summary | python3 -m json.tool
+          curl -sf -H "$AUTH" http://localhost:8000/api/finops/summary | python3 -m json.tool
+          echo ""
+
+          echo "=== Config (authenticated) ==="
+          curl -sf -H "$AUTH" http://localhost:8000/api/config | python3 -m json.tool
           echo ""
 
           echo "=== UI ==="

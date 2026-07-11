@@ -19,7 +19,7 @@ def ensure_api_key() -> str:
         return key
     key = f"arg_{secrets.token_urlsafe(24).rstrip('=')}"
     os.environ["ARGUS_API_KEY"] = key
-    logger.info("No ARGUS_API_KEY set — generated demo key: %s", key)
+    logger.warning("No ARGUS_API_KEY set — auto-generated a demo key (set ARGUS_API_KEY to persist)")
     return key
 
 

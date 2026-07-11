@@ -80,6 +80,7 @@ async def list_traces(
     offset:     int           = Query(0, ge=0),
     agent_name: Optional[str] = Query(None),
     status:     Optional[str] = Query(None),
+    _: str | None = Depends(require_api_key),
 ) -> TraceListResponse:
     """List traces, most recent first. Supports filtering and pagination."""
     rows, total = await repo.list_traces(
@@ -97,7 +98,10 @@ async def list_traces(
 
 
 @router.get("/{trace_id}", response_model=TraceDetail)
-async def get_trace(trace_id: str) -> TraceDetail:
+async def get_trace(
+    trace_id: str,
+    _: str | None = Depends(require_api_key),
+) -> TraceDetail:
     """Return a single trace with its full span tree."""
     row = await repo.get_trace_detail(trace_id)
     if row is None:
@@ -106,7 +110,10 @@ async def get_trace(trace_id: str) -> TraceDetail:
 
 
 @router.get("/{trace_id}/replay")
-async def replay_trace(trace_id: str) -> dict:
+async def replay_trace(
+    trace_id: str,
+    _: str | None = Depends(require_api_key),
+) -> dict:
     """Return ordered span timeline for step-by-step trajectory replay."""
     row = await repo.get_trace_detail(trace_id)
     if row is None:

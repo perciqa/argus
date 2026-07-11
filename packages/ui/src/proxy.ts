@@ -32,7 +32,14 @@ export async function proxy(request: NextRequest) {
       `${url.protocol}//${url.host}`,
       process.env.API_TARGET ?? "http://server:8000"
     )
-    return NextResponse.rewrite(url)
+    const requestHeaders = new Headers(request.headers)
+    const apiKey = process.env.ARGUS_API_KEY
+    if (apiKey) {
+      requestHeaders.set("X-API-Key", apiKey)
+    }
+    return NextResponse.rewrite(url, {
+      request: { headers: requestHeaders },
+    })
   }
 
   return NextResponse.next()
