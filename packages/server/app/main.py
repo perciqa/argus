@@ -7,6 +7,8 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 from fastapi import FastAPI
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 
 load_dotenv(Path(__file__).resolve().parent.parent.parent.parent / ".env")
 from fastapi.middleware.cors import CORSMiddleware
@@ -14,6 +16,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import ALLOWED_ORIGINS, ensure_api_key
 from app.db.database import init_db
 from app.api import traces, finops, evals, health, config
+from app.limiter import limiter
 from app.ws.manager import ws_manager
 
 
@@ -30,13 +33,17 @@ app = FastAPI(
     description="Agent reliability engine — trace, evaluate, and optimize your AI agents.",
     version="0.1.0",
     lifespan=lifespan,
+    max_request_body_size=2 * 1024 * 1024,
 )
+
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
 

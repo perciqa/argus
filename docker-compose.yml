@@ -44,40 +44,27 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
-  # ── Demo seeder (runs once, exits — requires scripts/seed_demo.sh) ──────────
-  # seed:
-  #   image: curlimages/curl:latest
-  #   environment:
-  #     - BASE=http://server:8000
-  #   depends_on:
-  #     server:
-  #       condition: service_healthy
-  #   volumes:
-  #     - ./scripts:/scripts:ro
-  #   entrypoint: ["sh", "/scripts/seed_demo.sh"]
-  #   restart: "no"
-
-  # ── Nginx reverse proxy (uncomment for production with custom domain) ───────
-  # nginx:
-  #   image: nginx:alpine
-  #   ports:
-  #     - "80:80"
-  #     - "443:443"
-  #   volumes:
-  #     - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
-  #     - certbot_data:/var/www/certbot
-  #     - letsencrypt:/etc/letsencrypt
-  #   depends_on:
-  #     server:
-  #       condition: service_healthy
-  #     ui:
-  #       condition: service_started
-  #   restart: unless-stopped
+  # ── Nginx reverse proxy ──────────────────────────────────────────────────────
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - certbot_data:/var/www/certbot
+      - letsencrypt:/etc/letsencrypt
+    depends_on:
+      server:
+        condition: service_healthy
+      ui:
+        condition: service_started
+    restart: unless-stopped
 
 volumes:
   argus_data:
     driver: local
-  # certbot_data:
-  #   driver: local
-  # letsencrypt:
-  #   driver: local
+  certbot_data:
+    driver: local
+  letsencrypt:
+    driver: local

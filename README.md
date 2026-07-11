@@ -26,17 +26,22 @@ Argus closes this gap:
 
 ---
 
-## Quickstart
+### Quickstart
+
+> **Live demo:** [argus.perciqa.com](https://argus.perciqa.com)
 
 ```bash
-# 1. Add FIREWORKS_API_KEY to .env (optional — evals fall back to local Ollama)
-echo 'FIREWORKS_API_KEY=fw_...' > .env
+# 1. Copy .env.example and set your keys
+cp .env.example .env
+# Edit .env: set ARGUS_API_KEY and (optionally) FIREWORKS_API_KEY
 
 # 2. Start everything
 docker compose up --build
 
-# 3. Open http://localhost:3000  (demo data seeded automatically)
+# 3. Open http://localhost:3000
 ```
+
+See [DEPLOY.md](DEPLOY.md) for production deployment and TLS setup.
 
 Or instrument your own agent:
 
@@ -93,10 +98,19 @@ Automatically score agent quality on every trace using **DeepSeek V4 Flash** via
                                                └──────────────────────┘
 ```
 
-**AMD Integration:**
-- Architecture is designed for local GPU inference — no CUDA dependencies, ROCm-compatible
-- Local model inference (Gemma, Llama) runs on any local GPU and is tracked as **$0.00**
-- The FinOps layer shows real savings when local inference offloads cloud cost
+## AMD & Fireworks Integration
+
+Argus is built **AMD-first** by design: no CUDA dependencies, ROCm-compatible
+architecture, and a FinOps layer that treats local GPU inference as $0.00.
+
+**AMD inference** — Local model runs (Gemma, Llama, via Ollama or AMD Developer
+Cloud) are tracked automatically. The FinOps dashboard shows local vs. cloud
+cost split, proving real savings from running on AMD hardware.
+
+**Fireworks AI** powers the eval engine: every agent trace is automatically
+scored by DeepSeek V4 Flash via Fireworks serverless inference
+($0.07/M tokens). Set `FIREWORKS_API_KEY` in `.env` to enable it.
+Falls back to local Ollama if no key is set.
 
 ---
 
@@ -120,7 +134,7 @@ git clone https://github.com/perciqa/argus.git
 cd argus
 
 # Environment
-cp .env.example .env   # add FIREWORKS_API_KEY
+cp .env.example .env   # set ARGUS_API_KEY and FIREWORKS_API_KEY
 
 # Start everything (Docker)
 docker compose up --build
@@ -130,7 +144,6 @@ python -m venv .venv && source .venv/bin/activate
 pip install -e packages/server -e packages/sdk
 uvicorn app.main:app --reload --port 8000 --app-dir packages/server &
 cd packages/ui && npm install && npm run dev
-bash scripts/seed_demo.sh   # populate 12 demo traces
 ```
 
 ---
@@ -142,10 +155,10 @@ argus/
 ├── packages/
 │   ├── sdk/          # Python SDK (argus)
 │   ├── server/       # FastAPI backend + eval engine
-│   └── ui/           # Next.js 16 dashboard (AdminHub design)
-├── scripts/
-│   └── seed_demo.sh  # 12 realistic traces across 4 agents
+│   └── ui/           # Next.js 16 dashboard (Mantine v7)
+├── scripts/          # Demo helpers
 ├── docker-compose.yml
+├── nginx.conf
 ├── .env.example
 └── README.md
 ```

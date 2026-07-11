@@ -117,10 +117,14 @@ CREATE INDEX IF NOT EXISTS idx_cost_agent ON cost_records(agent_name);
 
 
 async def init_db() -> None:
-    """Create all tables on first run."""
+    """Create all tables and configure SQLite for concurrent access."""
     Path(DB_PATH).parent.mkdir(parents=True, exist_ok=True)
     async with aiosqlite.connect(DB_PATH) as db:
         db.row_factory = aiosqlite.Row
+        await db.execute("PRAGMA journal_mode=WAL")
+        await db.execute("PRAGMA synchronous=NORMAL")
+        await db.execute("PRAGMA busy_timeout=5000")
+        await db.execute("PRAGMA foreign_keys=ON")
         await db.executescript(CREATE_TRACES_TABLE)
         await db.executescript(CREATE_SPANS_TABLE)
         await db.executescript(CREATE_EVAL_RESULTS_TABLE)
