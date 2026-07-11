@@ -30,14 +30,22 @@ jobs:
           for i in $(seq 1 15); do
             if curl -sf http://localhost:8000/api/health > /dev/null 2>&1; then
               echo "Server healthy"
+              break
+            fi
+            echo "Waiting for server... ($i/15)"
+            sleep 4
+          done
+          for i in $(seq 1 15); do
+            if curl -sf http://localhost:3000 > /dev/null 2>&1; then
+              echo "UI healthy"
               docker compose ps
               exit 0
             fi
-            echo "Waiting... ($i/15)"
+            echo "Waiting for UI... ($i/15)"
             sleep 4
           done
-          echo "Server failed to start"
-          docker compose logs
+          echo "UI failed to start"
+          docker compose logs ui
           exit 1
 
       - name: Validate API endpoints
