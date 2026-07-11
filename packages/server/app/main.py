@@ -11,6 +11,7 @@ from fastapi import FastAPI
 load_dotenv(Path(__file__).resolve().parent.parent.parent.parent / ".env")
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.config import ALLOWED_ORIGINS
 from app.db.database import init_db
 from app.api import traces, finops, evals, health
 from app.ws.manager import ws_manager
@@ -33,7 +34,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Tighten post-hackathon
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
