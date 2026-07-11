@@ -16,6 +16,7 @@ dependencies = [
     "httpx>=0.28",
     "openai>=2.44",
     "python-dotenv>=1.0",
+    "slowapi>=0.1.9",
 ]
 
 [project.optional-dependencies]

@@ -5,10 +5,11 @@ from __future__ import annotations
 import logging
 from typing import Optional
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Request
 
 from app.db import repository as repo
 from app.dependencies.auth import require_api_key
+from app.limiter import limiter
 from app.schemas import TraceIn, TraceDetail, TraceListResponse, TraceSummary
 from app.ws.manager import ws_manager
 
@@ -17,7 +18,9 @@ router = APIRouter(prefix="/traces", tags=["traces"])
 
 
 @router.post("", status_code=201)
+@limiter.limit("60/minute")
 async def ingest_trace(
+    request: Request,
     trace: TraceIn,
     background_tasks: BackgroundTasks,
     _api_key: str | None = Depends(require_api_key),
