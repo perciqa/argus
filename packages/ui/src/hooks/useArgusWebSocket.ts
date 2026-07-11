@@ -1,7 +1,11 @@
 "use client";
 import { useEffect, useRef, useState, useCallback } from "react";
 
-const WS_URL = process.env.NEXT_PUBLIC_WS_URL ?? "ws://localhost:8000/ws";
+function getWsUrl(): string {
+  if (typeof window === "undefined") return "ws://localhost:8000/ws";
+  const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
+  return `${proto}//${window.location.host}/ws`;
+}
 
 export type WsEvent = {
   event: string;
@@ -15,16 +19,18 @@ export function useArgusWebSocket(onEvent?: (e: WsEvent) => void) {
   const wsRef = useRef<WebSocket | null>(null);
   const onEventRef = useRef(onEvent);
   const connectRef = useRef<() => void>(() => {});
+  const reconnectRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const mountedRef = useRef(true);
 
   useEffect(() => {
     onEventRef.current = onEvent;
   });
 
   const connect = useCallback(() => {
-    if (wsRef.current?.readyState === WebSocket.OPEN) return;
+    if (wsRef.current && (wsRef.current.readyState === WebSocket.OPEN || wsRef.current.readyState === WebSocket.CONNECTING)) return;
 
     setStatus("connecting");
-    const ws = new WebSocket(WS_URL);
+    const ws = new WebSocket(getWsUrl());
     wsRef.current = ws;
 
     ws.onopen = () => setStatus("connected");
@@ -40,7 +46,9 @@ export function useArgusWebSocket(onEvent?: (e: WsEvent) => void) {
 
     ws.onclose = () => {
       setStatus("disconnected");
-      setTimeout(() => { connectRef.current(); }, 3000);
+      reconnectRef.current = setTimeout(() => {
+        if (mountedRef.current) connectRef.current();
+      }, 3000);
     };
 
     ws.onerror = () => {
@@ -53,8 +61,11 @@ export function useArgusWebSocket(onEvent?: (e: WsEvent) => void) {
   }, [connect]);
 
   useEffect(() => {
+    mountedRef.current = true;
     connect();
     return () => {
+      mountedRef.current = false;
+      if (reconnectRef.current) clearTimeout(reconnectRef.current);
       wsRef.current?.close();
     };
   }, [connect]);

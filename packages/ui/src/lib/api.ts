@@ -1,6 +1,6 @@
 /** Argus API client — typed wrappers around the server REST API */
 
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api";
+const BASE = process.env.NEXT_PUBLIC_API_URL ?? "/api";
 
 async function get<T>(path: string): Promise<T> {
   let res: Response;
