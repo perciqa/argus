@@ -236,3 +236,15 @@ async def test_get_endpoints_remain_open(client: AsyncClient):
     """GET endpoints must not require an API key."""
     resp = await client.get("/api/traces")
     assert resp.status_code == 200
+
+
+# ---------------------------------------------------------------------------
+# Config
+# ---------------------------------------------------------------------------
+
+@pytest.mark.asyncio
+async def test_config_returns_api_key(client: AsyncClient):
+    resp = await client.get("/api/config")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "api_key" in data

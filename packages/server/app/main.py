@@ -11,7 +11,7 @@ from fastapi import FastAPI
 load_dotenv(Path(__file__).resolve().parent.parent.parent.parent / ".env")
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.config import ALLOWED_ORIGINS
+from app.config import ALLOWED_ORIGINS, ensure_api_key
 from app.db.database import init_db
 from app.api import traces, finops, evals, health, config
 from app.ws.manager import ws_manager
@@ -21,8 +21,8 @@ from app.ws.manager import ws_manager
 async def lifespan(app: FastAPI):
     """Initialize database and background tasks on startup."""
     await init_db()
+    ensure_api_key()
     yield
-    # Cleanup on shutdown (if needed)
 
 
 app = FastAPI(
