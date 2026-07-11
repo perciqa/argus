@@ -5,9 +5,10 @@ from __future__ import annotations
 import logging
 from typing import Optional
 
-from fastapi import APIRouter, BackgroundTasks, HTTPException, Query
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 
 from app.db import repository as repo
+from app.dependencies.auth import require_api_key
 from app.schemas import TraceIn, TraceDetail, TraceListResponse, TraceSummary
 from app.ws.manager import ws_manager
 
@@ -19,6 +20,7 @@ router = APIRouter(prefix="/traces", tags=["traces"])
 async def ingest_trace(
     trace: TraceIn,
     background_tasks: BackgroundTasks,
+    _api_key: str | None = Depends(require_api_key),
 ) -> dict:
     """
     Ingest a completed trace from the Argus SDK.

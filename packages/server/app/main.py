@@ -11,8 +11,9 @@ from fastapi import FastAPI
 load_dotenv(Path(__file__).resolve().parent.parent.parent.parent / ".env")
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.config import ALLOWED_ORIGINS, ensure_api_key
 from app.db.database import init_db
-from app.api import traces, finops, evals, health
+from app.api import traces, finops, evals, health, config
 from app.ws.manager import ws_manager
 
 
@@ -20,8 +21,8 @@ from app.ws.manager import ws_manager
 async def lifespan(app: FastAPI):
     """Initialize database and background tasks on startup."""
     await init_db()
+    ensure_api_key()
     yield
-    # Cleanup on shutdown (if needed)
 
 
 app = FastAPI(
@@ -33,7 +34,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Tighten post-hackathon
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -44,6 +45,7 @@ app.include_router(health.router, prefix="/api")
 app.include_router(traces.router, prefix="/api")
 app.include_router(finops.router, prefix="/api")
 app.include_router(evals.router, prefix="/api")
+app.include_router(config.router, prefix="/api")
 
 # WebSocket
 app.include_router(ws_manager.router)

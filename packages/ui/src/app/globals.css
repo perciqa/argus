@@ -227,6 +227,52 @@ body {
   color: var(--blue);
 }
 
+/* API key display */
+.sidebar-api-key {
+  padding: 10px 20px 12px;
+  border-top: 1px solid var(--color-border);
+  font-size: 11px;
+  color: var(--dark-grey);
+  font-family: var(--lato);
+}
+
+.sidebar-api-key-label {
+  display: block;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-bottom: 4px;
+  color: var(--dark-grey);
+}
+
+.sidebar-api-key-value {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-family: var(--font-monospace);
+  font-size: 10px;
+  cursor: pointer;
+  padding: 3px 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color 0.15s;
+}
+
+.sidebar-api-key-value:hover {
+  color: var(--blue);
+}
+
+.sidebar-api-key-value span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* Sidebar bottom */
 .sidebar-footer {
   margin-top: auto;

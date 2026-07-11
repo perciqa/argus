@@ -4,6 +4,7 @@ Argus SDK — SDK configuration and init().
 
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass, field
 from typing import Optional
 
@@ -13,6 +14,7 @@ class ArgusConfig:
     """Resolved runtime configuration for the Argus SDK."""
     server_url:              str            = "http://localhost:8000"
     agent_name:              str            = "default"
+    api_key:                 str            = ""
     budget_cap_usd:          Optional[float] = None
     export_batch_size:       int            = 10
     export_interval_seconds: float          = 5.0
@@ -23,7 +25,7 @@ class ArgusConfig:
 
 # Module-level singletons — set by init()
 _config:   Optional[ArgusConfig]  = None
-_exporter: Optional[object]       = None   # BatchExporter, typed loosely to avoid circular import
+_exporter: Optional[object]       = None
 
 
 def get_config() -> ArgusConfig:
@@ -45,6 +47,7 @@ def get_exporter():
             batch_size=cfg.export_batch_size,
             flush_interval_seconds=cfg.export_interval_seconds,
             fallback_dir=cfg.fallback_dir,
+            api_key=cfg.api_key,
         )
         _exporter.start()
     return _exporter
@@ -53,6 +56,7 @@ def get_exporter():
 def init(
     server_url:              str            = "http://localhost:8000",
     agent_name:              str            = "default",
+    api_key:                 Optional[str]   = None,
     budget_cap_usd:          Optional[float] = None,
     export_batch_size:       int            = 10,
     export_interval_seconds: float          = 5.0,
@@ -69,6 +73,7 @@ def init(
     Args:
         server_url:              URL of the Argus server.
         agent_name:              Name tag for all traces from this process.
+        api_key:                 API key for server authentication. Reads ARGUS_API_KEY env var if not provided.
         budget_cap_usd:          Kill a trace if total cost exceeds this value.
         export_batch_size:       Number of traces to batch before flushing.
         export_interval_seconds: Max seconds between flushes.
@@ -78,9 +83,12 @@ def init(
     """
     global _config, _exporter
 
+    resolved_api_key = api_key or os.getenv("ARGUS_API_KEY", "")
+
     _config = ArgusConfig(
         server_url=server_url,
         agent_name=agent_name,
+        api_key=resolved_api_key,
         budget_cap_usd=budget_cap_usd,
         export_batch_size=export_batch_size,
         export_interval_seconds=export_interval_seconds,
@@ -101,6 +109,7 @@ def init(
         batch_size=export_batch_size,
         flush_interval_seconds=export_interval_seconds,
         fallback_dir=fallback_dir,
+        api_key=resolved_api_key,
     )
     _exporter.start()
 
