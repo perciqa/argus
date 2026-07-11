@@ -40,12 +40,14 @@ class BatchExporter:
         flush_interval_seconds: float = 5.0,
         fallback_dir: str = ".argus/traces",
         max_retries: int = 3,
+        api_key: str = "",
     ):
         self.server_url            = server_url.rstrip("/")
         self.batch_size            = batch_size
         self.flush_interval        = flush_interval_seconds
         self.fallback_dir          = Path(fallback_dir)
         self.max_retries           = max_retries
+        self.api_key               = api_key
 
         self._pending: list[Trace] = []
         self._lock                 = threading.Lock()
@@ -129,12 +131,15 @@ class BatchExporter:
     async def _send_with_retry(self, trace: "Trace") -> None:
         url     = f"{self.server_url}/api/traces"
         payload = trace.model_dump(mode="json")
+        headers = {}
+        if self.api_key:
+            headers["X-API-Key"] = self.api_key
 
         for attempt in range(self.max_retries):
             try:
                 if self._client is None:
                     self._client = httpx.AsyncClient(timeout=10.0)
-                resp = await self._client.post(url, json=payload)
+                resp = await self._client.post(url, json=payload, headers=headers)
                 if resp.status_code < 300:
                     logger.debug("Exported trace %s", trace.trace_id)
                     return
