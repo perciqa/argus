@@ -80,6 +80,9 @@ logs/
 # Documentation (excluded from repo)
 docs/
 
+# Demo recording scripts (video production only — excluded from repo)
+scripts/
+
 # SQLite — server runtime data (never commit)
 **/data/*.db
 **/data/*.db-shm

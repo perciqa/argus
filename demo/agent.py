@@ -158,7 +158,10 @@ async def run_agent(task: str) -> dict:
     nested spans (model calls + tool calls + reasoning steps).
     """
     task_type = await classify_task(task)
-    tool_result = await execute_tool(task_type, task)
+    try:
+        tool_result = await execute_tool(task_type, task)
+    except ValueError as e:
+        tool_result = {"error": str(e)}
     answer = await generate_answer(task_type, task, tool_result)
 
     return {
@@ -193,6 +196,22 @@ DEMO_SCENARIOS = [
     {
         "name": "Research: local vs cloud GPU costs",
         "task": "Compare the total cost of ownership for running LLM inference on local on-prem GPU hardware versus Fireworks serverless cloud API over 3 years",
+    },
+    {
+        "name": "Chat: explain quantum computing",
+        "task": "Explain quantum computing in simple terms for a non-technical stakeholder",
+    },
+    {
+        "name": "Lookup: check refund status",
+        "task": "Look up the order status for ORD-8821",
+    },
+    {
+        "name": "Calculation: monthly budget projection",
+        "task": "Calculate: if we scale from 1,000 to 15,000 agents over 6 months and cloud costs grow 8% month-over-month, what is total cloud spend in month 6?",
+    },
+    {
+        "name": "Research: AI safety frameworks",
+        "task": "Search for the latest AI safety frameworks published in 2026 and summarize the top 3 recommendations for agent deployment",
     },
 ]
 

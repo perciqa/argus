@@ -9,6 +9,7 @@ import {
   IconArrowRight, IconCheck, IconAlertCircle, IconAlertTriangle,
   IconActivity, IconTrendingUp, IconTrendingDown, IconMinus,
 } from "@tabler/icons-react";
+import { timeAgo } from "@/lib/format";
 import {
   getFinOpsSummary, getTimeseries, listTraces, listEvals,
   type TraceSummary, type FinOpsSummary, type TimeseriesPoint, type EvalListResponse,
@@ -30,14 +31,6 @@ function fmtTokens(n: number) {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
   if (n >= 1_000) return `${(n / 1_000).toFixed(1)}k`;
   return String(n);
-}
-
-function timeAgo(iso: string) {
-  const secs = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
-  if (secs < 60) return `${secs}s ago`;
-  if (secs < 3600) return `${Math.floor(secs / 60)}m ago`;
-  if (secs < 86400) return `${Math.floor(secs / 3600)}h ago`;
-  return `${Math.floor(secs / 86400)}d ago`;
 }
 
 function greet() {

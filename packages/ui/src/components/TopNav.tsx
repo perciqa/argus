@@ -1,9 +1,12 @@
 "use client";
+import { useEffect, useState, startTransition } from "react";
 import { ActionIcon, useMantineColorScheme } from "@mantine/core";
 import { IconSearch, IconSun, IconMoon } from "@tabler/icons-react";
 
-export function TopNav({ title }: { title?: string }) {
+export function TopNav() {
   const { colorScheme, setColorScheme } = useMantineColorScheme();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { startTransition(() => setMounted(true)); }, []);
 
   return (
     <nav className="topnav">
@@ -30,7 +33,7 @@ export function TopNav({ title }: { title?: string }) {
           aria-label="Toggle theme"
           color="gray"
         >
-          {colorScheme === "dark" ? (
+          {mounted && colorScheme === "dark" ? (
             <IconSun size={18} />
           ) : (
             <IconMoon size={18} />

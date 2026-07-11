@@ -77,8 +77,10 @@ async def lookup(key: str, database: str = "orders") -> dict:
     await asyncio.sleep(random.uniform(0.2, 0.5))
 
     if database == "orders":
-        record = _ORDERS.get(key, {"error": "not_found", "key": key})
+        record = _ORDERS.get(key)
+        if record is None:
+            raise ValueError(f"Order {key} not found in database")
     else:
-        record = {"error": "unknown_database", "database": database}
+        raise ValueError(f"Unknown database: {database}")
 
     return {"database": database, "key": key, "record": record}

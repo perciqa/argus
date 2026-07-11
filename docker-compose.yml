@@ -41,18 +41,18 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
-  # ── Demo seeder (runs once, exits) ─────────────────────────────────────────
-  seed:
-    image: curlimages/curl:latest
-    environment:
-      - BASE=http://server:8000
-    depends_on:
-      server:
-        condition: service_healthy
-    volumes:
-      - ./scripts:/scripts:ro
-    entrypoint: ["sh", "/scripts/seed_demo.sh"]
-    restart: "no"
+  # ── Demo seeder (runs once, exits — requires scripts/seed_demo.sh) ──────────
+  # seed:
+  #   image: curlimages/curl:latest
+  #   environment:
+  #     - BASE=http://server:8000
+  #   depends_on:
+  #     server:
+  #       condition: service_healthy
+  #   volumes:
+  #     - ./scripts:/scripts:ro
+  #   entrypoint: ["sh", "/scripts/seed_demo.sh"]
+  #   restart: "no"
 
   # ── Nginx reverse proxy (uncomment for production with custom domain) ───────
   # nginx:
