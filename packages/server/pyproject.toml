@@ -6,7 +6,6 @@ build-backend = "hatchling.build"
 name = "argus-server"
 version = "0.1.0"
 description = "Argus by Perciqa — FastAPI backend server"
-readme = "README.md"
 license = "MIT"
 requires-python = ">=3.10"
 dependencies = [
