@@ -1,9 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Badge, Card, Loader, Table, Text } from "@mantine/core";
 import { LineChart } from "@mantine/charts";
+import { notifications } from "@mantine/notifications";
+import { timeAgo } from "@/lib/format";
 import { listEvals, getEvalScores, type EvalSummary, type ScorePoint } from "@/lib/api";
+import { useArgusWebSocket } from "@/hooks/useArgusWebSocket";
+import type { WsEvent } from "@/hooks/useArgusWebSocket";
 
 function ScoreRing({ score }: { score: number }) {
   const r = 36;
@@ -37,13 +41,6 @@ const VERDICT_PROPS = {
   fail: { color: "red",    label: "Fail" },
 };
 
-function timeAgo(iso: string) {
-  const secs = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
-  if (secs < 60)   return `${secs}s ago`;
-  if (secs < 3600) return `${Math.floor(secs / 60)}m ago`;
-  return `${Math.floor(secs / 3600)}h ago`;
-}
-
 export default function EvalsPage() {
   const [evals, setEvals]         = useState<EvalSummary[]>([]);
   const [scores, setScores]       = useState<ScorePoint[]>([]);
@@ -51,6 +48,19 @@ export default function EvalsPage() {
   const [avgScore, setAvgScore]   = useState<number | null>(null);
   const [passRate, setPassRate]   = useState<number | null>(null);
   const [loading, setLoading]     = useState(true);
+  const [wsLog, setWsLog]         = useState<string[]>([]);
+
+  const { status: wsStatus } = useArgusWebSocket(
+    useCallback((event: WsEvent) => {
+      setWsLog((prev) => [...prev.slice(-4), `Received: ${event.event}`]);
+      if (event.event === "eval_complete") {
+        const d = event.data as unknown as EvalSummary;
+        setEvals((prev) => [d, ...prev.slice(0, 49)]);
+        setTotal((n) => n + 1);
+        notifications.show({ title: "Eval complete", message: `Score ${d.overall_score?.toFixed(1) ?? "—"} · ${d.verdict ?? ""}`, color: "teal", autoClose: 4000 });
+      }
+    }, [])
+  );
 
   useEffect(() => {
     Promise.all([listEvals(50), getEvalScores(7)]).then(([e, s]) => {
@@ -91,6 +101,17 @@ export default function EvalsPage() {
             <li className="breadcrumb-sep">›</li>
             <li><span className="breadcrumb-active">Evals</span></li>
           </ul>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <span className={`live-badge ${wsStatus === "connected" ? "connected" : "disconnected"}`}>
+            <span className="live-dot" />
+            {wsStatus === "connected" ? "Live" : "Connecting…"}
+          </span>
+          {wsLog.length > 0 && (
+            <span style={{ fontSize: 10, color: "var(--dark-grey)", fontFamily: "var(--font-mono)" }}>
+              {wsLog[wsLog.length - 1]}
+            </span>
+          )}
         </div>
       </div>
 

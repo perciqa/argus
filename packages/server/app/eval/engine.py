@@ -100,11 +100,15 @@ async def evaluate_trace(trace_id: str) -> None:
 
         await repo.upsert_eval(result)
 
+        now = datetime.now(timezone.utc)
         await ws_manager.broadcast("eval_complete", {
             "trace_id":      trace_id,
             "eval_id":       result["eval_id"],
             "overall_score": result["overall_score"],
             "verdict":       result["verdict"],
+            "explanation":   result.get("explanation", ""),
+            "judge_model":   result.get("judge_model", ""),
+            "evaluated_at":  now.strftime("%Y-%m-%dT%H:%M:%S.") + f"{now.microsecond:06d}Z",
             "agent_name":    trace.get("agent_name"),
         })
 

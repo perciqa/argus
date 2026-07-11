@@ -1069,6 +1069,7 @@ body {
   padding: 8px 0;
   border-bottom: 1px solid var(--grey);
   transition: background 0.12s;
+  font-family: var(--lato);
 }
 .feed-row:last-child { border-bottom: none; }
 .feed-row:hover { background: var(--grey); margin: 0 -24px; padding: 8px 24px; }
@@ -1088,6 +1089,7 @@ body {
 .feed-agent {
   font-size: 12px;
   font-weight: 600;
+  font-family: var(--poppins);
   color: var(--dark);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1242,6 +1244,23 @@ body {
   transition: transform 0.15s, color 0.15s;
 }
 .ov-nav-card:hover .ov-nav-arrow { transform: translateX(2px); color: var(--blue); }
+
+/* ── Notification toasts ── */
+.mantine-Notification-root {
+  font-family: var(--lato) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,.25) !important;
+  border: 1px solid var(--grey) !important;
+}
+.mantine-Notification-title {
+  font-family: var(--poppins) !important;
+  font-weight: 600 !important;
+  font-size: 13px !important;
+}
+.mantine-Notification-description {
+  font-size: 12px !important;
+  color: var(--dark-grey) !important;
+}
 
 /* ── Dark mode overrides ── */
 [data-mantine-color-scheme="dark"] .offline-card { border-color: rgba(251,146,60,.3); }
