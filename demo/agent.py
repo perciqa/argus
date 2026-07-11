@@ -32,7 +32,7 @@ argus.init(server_url=SERVER_URL, agent_name="multi-model-router", export_interv
 
 async def _local_llm(prompt: str) -> str:
     """
-    Simulated call to a local model (Gemma 3 27B on AMD hardware — $0).
+    Simulated call to a local model (Gemma 3 27B, self-hosted — $0).
     Captured as a model_call span within the active trace.
     """
     with argus.trace("gemma3:27b", kind="model_call") as span:
@@ -192,7 +192,7 @@ DEMO_SCENARIOS = [
     },
     {
         "name": "Research: local vs cloud GPU costs",
-        "task": "Compare the total cost of ownership for running LLM inference on local AMD MI300X GPUs versus Fireworks serverless cloud API over 3 years",
+        "task": "Compare the total cost of ownership for running LLM inference on local on-prem GPU hardware versus Fireworks serverless cloud API over 3 years",
     },
 ]
 

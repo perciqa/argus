@@ -4,7 +4,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue)](https://python.org)
-[![AMD ROCm](https://img.shields.io/badge/AMD-ROCm%20Native-ED1C24)](https://rocm.amd.com)
+[![AMD Hackathon](https://img.shields.io/badge/AMD-Hackathon%20Act%20II-ED1C24)](https://lablab.ai/ai-hackathons/amd-developer-hackathon-act-ii)
 [![Built for AMD Hackathon](https://img.shields.io/badge/AMD%20Hackathon-Act%20II-orange)](https://lablab.ai/ai-hackathons/amd-developer-hackathon-act-ii)
 
 Argus is an open-source agent reliability engine that gives you **trajectory tracing**, **inference FinOps**, and **eval-in-production** — in a single tool, with zero external dependencies for local use.
@@ -68,7 +68,7 @@ my_agent("Explain quantum entanglement")
 Capture the full decision tree of every agent run — every reasoning step, tool call, and model selection — as a replayable, structured trace. Visualize it as an interactive tree with timing, cost, and error highlighting.
 
 ### 💰 Inference FinOps
-Track cost *per task*, not per GPU. See exactly how much each agent run costs, with local vs. cloud breakdowns. Local AMD GPU inference is automatically counted as **$0.00** — giving you a real picture of your savings.
+Track cost *per task*, not per GPU. See exactly how much each agent run costs, with local vs. cloud breakdowns. Local inference is automatically counted as **$0.00** — giving you a real picture of your savings.
 
 ### 🧪 Eval-in-Production
 Automatically score agent quality on every trace using **DeepSeek V4 Flash** via Fireworks AI serverless ($0.07/M tokens). Detect regressions before users do. Falls back to local Ollama when no API key is set.
@@ -94,9 +94,9 @@ Automatically score agent quality on every trace using **DeepSeek V4 Flash** via
 ```
 
 **AMD Integration:**
-- Local model inference (Gemma, Llama) runs on AMD Developer Cloud (MI300X)
-- Eval judge (Gemma) runs on AMD GPU — eval costs tracked as $0.00
-- Full ROCm compatibility — no CUDA dependencies
+- Architecture is designed for local GPU inference — no CUDA dependencies, ROCm-compatible
+- Local model inference (Gemma, Llama) runs on any local GPU and is tracked as **$0.00**
+- The FinOps layer shows real savings when local inference offloads cloud cost
 
 ---
 

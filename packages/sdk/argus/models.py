@@ -39,7 +39,7 @@ class SpanStatus(str, Enum):
 
 class ModelProvider(str, Enum):
     """Where the model inference ran."""
-    LOCAL = "local"        # Local GPU (AMD Developer Cloud / ROCm) — $0 cost
+    LOCAL = "local"        # Local GPU (on-prem / self-hosted) — $0 cost
     FIREWORKS = "fireworks"  # Fireworks AI API
     OPENAI = "openai"
     ANTHROPIC = "anthropic"

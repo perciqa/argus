@@ -77,7 +77,7 @@ export default function FinOpsPage() {
           </div>
           <div className="savings-banner-body">
             <div className="savings-banner-amount">{fmtCost(allTime!.savings_usd)}</div>
-            <div className="savings-banner-label">saved all time by running locally on AMD hardware instead of cloud APIs</div>
+            <div className="savings-banner-label">saved all time by running locally instead of cloud APIs</div>
           </div>
         </div>
       )}

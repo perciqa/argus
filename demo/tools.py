@@ -14,7 +14,7 @@ _ORDERS = {
     "ORD-8821": {"order_id": "ORD-8821", "status": "delivered", "customer": "acme@example.com", "total_usd": 2450.00, "items": ["GPU Server Rack × 4", "Infiniband Switch × 2"]},
     "ORD-8822": {"order_id": "ORD-8822", "status": "pending",    "customer": "globex@example.com", "total_usd": 180.50, "items": ["Thermal Paste × 10"]},
     "ORD-8823": {"order_id": "ORD-8823", "status": "refunded",   "customer": "initech@example.com", "total_usd": 560.00, "items": ["NIC × 2", "DAC Cable × 4"]},
-    "ORD-8824": {"order_id": "ORD-8824", "status": "shipped",    "customer": "umbrella@example.com", "total_usd": 12500.00, "items": ["AMD MI300X × 1"]},
+    "ORD-8824": {"order_id": "ORD-8824", "status": "shipped",    "customer": "umbrella@example.com", "total_usd": 12500.00, "items": ["GPU Server Node × 1"]},
 }
 
 
@@ -35,8 +35,8 @@ async def search(query: str) -> dict:
         ]
     elif "gpu" in query.lower() or "inference" in query.lower() or "local" in query.lower():
         snippets = [
-            {"title": "Running Llama 3.1 70B Locally — 2026 Cost Analysis", "snippet": "AMD MI300X delivers 98 tok/s on Llama 3.1 70B Q4. Local inference saves $0.35 per 1M tokens vs Fireworks."},
-            {"title": "Cloud vs On-Prem GPU Inference TCO (3-Year)", "snippet": "At 30% utilization, on-prem 4× MI300X breaks even in 8 months vs Fireworks serverless at the same throughput."},
+            {"title": "Running Llama 3.1 70B Locally — 2026 Cost Analysis", "snippet": "Local GPU inference delivers strong throughput on Llama 3.1 70B Q4. Local inference saves $0.35 per 1M tokens vs Fireworks."},
+            {"title": "Cloud vs On-Prem GPU Inference TCO (3-Year)", "snippet": "At 30% utilization, on-prem GPU hardware breaks even in 8 months vs Fireworks serverless at the same throughput."},
         ]
     elif "tco" in query.lower() or "cost" in query.lower() or "budget" in query.lower():
         snippets = [

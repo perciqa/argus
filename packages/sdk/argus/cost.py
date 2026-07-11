@@ -2,7 +2,7 @@
 Argus SDK — Cost calculator.
 
 Pricing table and cost calculation for model inference calls.
-Local inference (AMD Developer Cloud / ROCm) is always $0.00.
+Local inference (on-prem or local GPU) is always $0.00.
 """
 
 from __future__ import annotations
@@ -14,7 +14,7 @@ from argus.models import ModelProvider
 # ---------------------------------------------------------------------------
 
 PRICING_TABLE: dict[str, dict[str, float]] = {
-    # Local models — always free (AMD Developer Cloud / ROCm)
+    # Local models — always free (on-prem / local GPU)
     "local": {"input": 0.00, "output": 0.00},
 
     # Fireworks AI models (July 2026) — serverless pricing per 1M tokens
@@ -59,7 +59,7 @@ def calculate_cost(
     """
     Calculate the estimated cost of a model call in USD.
 
-    Local providers (AMD GPU, localhost) always return $0.00
+    Local providers (localhost, on-prem GPU) always return $0.00
     regardless of token count — this is the core FinOps value prop.
     """
     if provider == ModelProvider.LOCAL:

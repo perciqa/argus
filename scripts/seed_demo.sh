@@ -40,12 +40,12 @@ send_trace '{
 }'
 
 # ══════════════════════════════════════════════════════════════════════════════
-# TRACE 2 — Success: research with AMD-friendly story, multi-model routing
+# TRACE 2 — Success: research with hardware-agnostic story, multi-model routing
 # Story beat: "Agent routes to right model. Cloud for complex, local for simple."
 # ══════════════════════════════════════════════════════════════════════════════
 send_trace '{
   "trace_id":"seed-02-amd-bench","agent_name":"research-agent","status":"ok",
-  "task":"Compare AMD MI300X vs NVIDIA H100 inference benchmarks for LLM serving",
+  "task":"Compare local on-prem GPU inference versus cloud API for LLM serving cost and latency",
   "start_time":"'"$TODAY"'T09:05:00Z","end_time":"'"$TODAY"'T09:05:15Z",
   "duration_ms":15200,"total_tokens":12500,"total_cost_usd":0.0042,
   "local_tokens":3500,"cloud_tokens":9000,"model_calls_count":3,"tool_calls_count":2,
