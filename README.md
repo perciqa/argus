@@ -7,13 +7,13 @@
 [![AMD Hackathon](https://img.shields.io/badge/AMD-Hackathon%20Act%20II-ED1C24)](https://lablab.ai/ai-hackathons/amd-developer-hackathon-act-ii)
 [![Built for AMD Hackathon](https://img.shields.io/badge/AMD%20Hackathon-Act%20II-orange)](https://lablab.ai/ai-hackathons/amd-developer-hackathon-act-ii)
 
-Argus is an open-source agent reliability engine that gives you **trajectory tracing**, **inference FinOps**, and **eval-in-production** — in a single tool, with zero external dependencies for local use.
+Argus is an open-source agent reliability engine that gives you **trajectory tracing**, **inference FinOps**, and **eval-in-production** -- in a single tool, with zero external dependencies for local use.
 
 ---
 
 ## Why Argus?
 
-AI agents fail silently. A customer service agent hallucinating a refund policy, a research agent fabricating a citation — both return `200 OK`. Traditional APM tools (Datadog, New Relic) track *system health*, not *agent reasoning*.
+AI agents fail silently. A customer service agent hallucinating a refund policy, a research agent fabricating a citation -- both return `200 OK`. Traditional APM tools (Datadog, New Relic) track *system health*, not *agent reasoning*.
 
 Argus closes this gap:
 
@@ -26,9 +26,30 @@ Argus closes this gap:
 
 ---
 
-### Quickstart
+## Try the Live Demo
 
-> **Live demo:** [argus.perciqa.com](https://argus.perciqa.com)
+Argus is running at **https://argus.perciqa.com**. Wire your agent into it in
+under a minute:
+
+```bash
+pip install git+https://github.com/perciqa/argus.git#subdirectory=packages/sdk
+```
+
+```python
+import argus
+
+argus.init(
+    server_url="https://argus.perciqa.com",
+    api_key="<your-key-from-sidebar>",  # get it at argus.perciqa.com
+    agent_name="my-agent",
+)
+```
+
+Traces appear in the dashboard in real time -- no local setup needed.
+
+---
+
+## Quickstart (Self-Hosted)
 
 ```bash
 # 1. Copy .env.example and set your keys
@@ -43,7 +64,7 @@ docker compose up --build
 
 See [DEPLOY.md](DEPLOY.md) for production deployment and TLS setup.
 
-Or instrument your own agent:
+Or instrument your own agent locally:
 
 ```python
 import argus
@@ -54,7 +75,7 @@ client = OpenAI(base_url="http://localhost:11434/v1", api_key="ollama")
 
 @argus.trace(kind="agent")
 def my_agent(query: str) -> str:
-    # OpenAI calls are auto-intercepted — no extra code needed
+    # OpenAI calls are auto-intercepted -- no extra code needed
     response = client.chat.completions.create(
         model="gemma3:27b",
         messages=[{"role": "user", "content": query}]
@@ -70,10 +91,10 @@ my_agent("Explain quantum entanglement")
 ## Features
 
 ### 🔭 Trajectory Tracing
-Capture the full decision tree of every agent run — every reasoning step, tool call, and model selection — as a replayable, structured trace. Visualize it as an interactive tree with timing, cost, and error highlighting.
+Capture the full decision tree of every agent run -- every reasoning step, tool call, and model selection -- as a replayable, structured trace. Visualize it as an interactive tree with timing, cost, and error highlighting.
 
 ### 💰 Inference FinOps
-Track cost *per task*, not per GPU. See exactly how much each agent run costs, with local vs. cloud breakdowns. Local inference is automatically counted as **$0.00** — giving you a real picture of your savings.
+Track cost *per task*, not per GPU. See exactly how much each agent run costs, with local vs. cloud breakdowns. Local inference is automatically counted as **$0.00** -- giving you a real picture of your savings.
 
 ### 🧪 Eval-in-Production
 Automatically score agent quality on every trace using **DeepSeek V4 Flash** via Fireworks AI serverless ($0.07/M tokens). Detect regressions before users do. Falls back to local Ollama when no API key is set.
@@ -103,7 +124,7 @@ Automatically score agent quality on every trace using **DeepSeek V4 Flash** via
 Argus is built **AMD-first** by design: no CUDA dependencies, ROCm-compatible
 architecture, and a FinOps layer that treats local GPU inference as $0.00.
 
-**AMD inference** — Local model runs (Gemma, Llama, via Ollama or AMD Developer
+**AMD inference** -- Local model runs (Gemma, Llama, via Ollama or AMD Developer
 Cloud) are tracked automatically. The FinOps dashboard shows local vs. cloud
 cost split, proving real savings from running on AMD hardware.
 
@@ -173,6 +194,6 @@ Argus is MIT-licensed and welcomes contributions. See [CONTRIBUTING.md](CONTRIBU
 
 ## Built By
 
-**Perciqa** — Built for the [AMD Developer Hackathon Act II](https://lablab.ai/ai-hackathons/amd-developer-hackathon-act-ii).
+**Perciqa** -- Built for the [AMD Developer Hackathon Act II](https://lablab.ai/ai-hackathons/amd-developer-hackathon-act-ii).
 
-> *Argus* — from Greek mythology, the hundred-eyed giant who never slept. If you can't see everything your agent does, you can't trust it.
+> *Argus* -- from Greek mythology, the hundred-eyed giant who never slept. If you can't see everything your agent does, you can't trust it.
