@@ -62,8 +62,6 @@ docker compose up --build
 # 3. Open http://localhost:3000
 ```
 
-See [DEPLOY.md](DEPLOY.md) for production deployment and TLS setup.
-
 Or instrument your own agent locally:
 
 ```python
