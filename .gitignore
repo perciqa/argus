@@ -79,6 +79,7 @@ logs/
 
 # Documentation (excluded from repo)
 docs/
+DEPLOY.md
 
 # Demo recording scripts (video production only — excluded from repo)
 scripts/
