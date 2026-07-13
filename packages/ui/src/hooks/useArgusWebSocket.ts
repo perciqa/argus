@@ -2,9 +2,9 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 
 function getWsUrl(): string {
-  if (typeof window === "undefined") return "ws://localhost:8000/ws";
+  if (typeof window === "undefined") return "ws://localhost:8000/ws/stream";
   const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
-  return `${proto}//${window.location.host}/ws`;
+  return `${proto}//${window.location.host}/ws/stream`;
 }
 
 export type WsEvent = {
